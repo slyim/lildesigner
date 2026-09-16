@@ -445,9 +445,10 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         gap: 1.4rem;
         padding: 3rem 1rem;
       }
-      /* subtle settle-in once the gate lifts */
+      /* blurred behind the gate, settles into focus once it lifts */
       main { transition: transform 0.9s ease, filter 0.9s ease; }
-      body:not(.entered) main { transform: scale(1.035); }
+      body:not(.entered) main { transform: scale(1.035); filter: blur(14px); }
+      body:not(.entered) .bg-img { filter: blur(10px) saturate(1.4); }
 
       .cards {
         display: grid;
