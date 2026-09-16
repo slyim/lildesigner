@@ -15,11 +15,11 @@ export interface LegalDoc {
 export const privacy: LegalDoc = {
   icon: "ph-fill ph-shield-check",
   title: "Privacy Policy",
-  updated: "May 27, 2026",
+  updated: "September 16, 2026",
   sections: [
     {
       heading: "1. Information We Collect",
-      body: "This website is designed as a direct link list and digital showcase. We do not run databases, tracking cookies, user accounts, or active telemetry. You can browse all link nodes anonymously.",
+      body: "This website stores anonymous aggregate counts for page views, likes, and outbound-link clicks. It does not create user accounts, store IP addresses, or use tracking cookies.",
     },
     {
       heading: "2. External Links",
@@ -27,7 +27,7 @@ export const privacy: LegalDoc = {
     },
     {
       heading: "3. Local Storage",
-      body: "We utilize standard browser localStorage solely to store and persist your preferred visual theme and volume settings (Dark or Light Mode). This data is completely local to your browser and is never uploaded or transmitted off-device.",
+      body: "Browser storage keeps your theme and volume preferences, prevents repeat likes from the same browser, and avoids counting repeated views in one tab session. This data stays on your device.",
     },
     {
       heading: "4. Updates to This Policy",
@@ -39,25 +39,29 @@ export const privacy: LegalDoc = {
 
 export const terms: LegalDoc = {
   icon: "ph-fill ph-scroll",
-  title: "Terms of Service",
-  updated: "May 27, 2026",
+  title: "Terms and Conditions",
+  updated: "September 16, 2026",
   sections: [
     {
-      heading: "1. Acceptance of Terms",
-      body: "This space is provided on an \u201Cas-is\u201D basis for personal, creative, and informational purposes. By browsing these links, you acknowledge and agree that your usage is voluntary and subject to these terms.",
+      heading: "1. Completely Free",
+      body: "This space is completely free — no fees, no subscriptions, no paid features, and no locked content. Everything here is shared for personal enjoyment, creativity, and connection. You will never be charged for visiting, listening, or following links from this page.",
     },
     {
-      heading: "2. Intellectual Property",
-      body: "All custom graphics, source styling systems, configurations, layouts, and textual content are the intellectual property of Lila unless otherwise noted. You may not copy, replicate, or re-distribute files from this repository for commercial use without express permission.",
+      heading: "2. Respected Owners",
+      body: "All content belongs to its respectful owners, credited here with gratitude:\n• Site design, layout & original text — Liliana (violily / Lila)\n• “Suzume” — RADWIMPS feat. Toaka\n• “this is what autumn feels like” — JVKE\n• “lovely” — Billie Eilish & Khalid\n• “Love Story (Version Orchestrale)” — M & Indila\n• Background visuals & artwork — their respective creators\nMusic and visuals are shared for personal, non-commercial ambience only, with full respect to the artists.",
     },
     {
-      heading: "3. Disclaimer of Liability",
-      body: "Lila provides outgoing links to third-party domains (e.g. GitHub, Instagram) for convenience only. We do not endorse, control, or assume liability for any actions, products, content, or practices of external platforms.",
+      heading: "3. Please Respect the Owners",
+      body: "Enjoy and share with respect: do not re-upload, sell, or claim anyone else's work as your own. If you share something from this page, please credit the rightful owners listed above and link back where possible.",
     },
     {
-      heading: "4. Modifications",
-      body: "Lila reserves the right to modify, suspend, or update these terms and any link configurations presented herein at any time without prior notice.",
+      heading: "4. External Links",
+      body: "Outgoing links to third-party platforms (such as GitHub, Instagram, and Spotify) are provided for convenience only. Lila does not control, endorse, or assume responsibility for the content, products, or practices of external sites.",
+    },
+    {
+      heading: "5. Changes to These Terms",
+      body: "These terms may be updated from time to time. Any changes will appear on this page with a new modification date. Continuing to visit means you accept the current terms. Questions? Reach out through any linked profile.",
     },
   ],
-  footer: "© 2026 Lila. All rights reserved.",
+  footer: "© 2026 Lila · Free forever · All credits belong to their respectful owners.",
 };

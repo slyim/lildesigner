@@ -15,4 +15,6 @@ export interface Track {
 export const tracks: Track[] = [
   { title: "Suzume", artist: "RADWIMPS feat. Toaka", src: "/music/suzume.mp3", start: 37, end: 67, bg: "/bg.mp4" },
   { title: "this is what autumn feels like", artist: "JVKE", src: "/music/autumn.mp3", start: 55, end: 85, bg: "/bg-city.mp4" },
+  { title: "lovely", artist: "Billie Eilish, Khalid", src: "/music/Billie Ellish, Khaild- Lovely.mp3", start: 130, end: 160, bg: "/bg-pink.mp4" },
+  { title: "Love Story (Version Orchestrale)", artist: "M, Indila", src: "/music/M_-_Indila_-Love_Story_Version_Orchestrale_(mp3.pm)_bass_boosted.mp3", start: 245, end: 275, bg: "/bg-space.mp4" },
 ];

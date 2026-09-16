@@ -4,8 +4,8 @@ export const profile = {
   displayName: "Liliana",
   pronouns: "she/faer",
   bio: "product designer, ich war ich bin ich werde sein. Aby <3",
-  location: "somewhere in the static",
   avatar: "/avatar.jpg",
+  banner: "/bg.gif",
   status: "online" as const,
   links: [
     { icon: "ph-fill ph-globe", label: "Portfolio", href: "https://liladesign.dev" },

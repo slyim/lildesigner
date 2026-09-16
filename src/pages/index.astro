@@ -3,6 +3,9 @@ import ProfileCard from "../components/ProfileCard.astro";
 import LegalCard from "../components/LegalCard.astro";
 import { privacy, terms } from "../data/legal";
 import "../styles/glass.css";
+
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
 ---
 
 <html lang="en">
@@ -36,12 +39,11 @@ import "../styles/glass.css";
     />
   </head>
   <body>
+    <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
     <!-- liquid-glass backdrop -->
     <div class="bg" aria-hidden="true">
       <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" autoplay muted loop playsinline aria-hidden="true"></video>
       <div class="bg-tint"></div>
-      <div class="blob blob-a"></div>
-      <div class="blob blob-b"></div>
       <div class="bg-grain"></div>
     </div>
 
@@ -72,7 +74,7 @@ import "../styles/glass.css";
         <span class="vol-fill" id="volFill" aria-hidden="true"></span>
         <input class="vol-slider" id="volSlider" type="range" min="0" max="100" value="50" title="Volume" aria-label="Volume" />
       </span>
-      <span class="track-name" id="trackName" title=""></span>
+      <span class="track-name" id="trackName" title=""><span class="track-name-text" id="trackNameText"></span></span>
     </div>
 
     <button class="float-pill theme-toggle" id="themeToggle" type="button" title="Light mode">
@@ -87,12 +89,68 @@ import "../styles/glass.css";
     </div>
 
     <script>
+      import { createClient } from "@supabase/supabase-js";
       import { tracks } from "../data/music";
       import { initTiltCards } from "../scripts/tilt";
       import { initHoverGlow } from "../scripts/beam";
+      import { initCardParticles } from "../scripts/particles";
+      import { playEntrance } from "../scripts/entrance";
+      import { playNameTyping } from "../scripts/typing";
 
       initTiltCards();
       initHoverGlow();
+      initCardParticles();
+
+      const analyticsConfig = document.getElementById("supabase-config") as HTMLElement;
+      const analyticsUrl = analyticsConfig.dataset.url;
+      const analyticsKey = analyticsConfig.dataset.key;
+      if (analyticsUrl && analyticsKey) {
+        const supabase = createClient(analyticsUrl, analyticsKey);
+        const likeButton = document.querySelector<HTMLElement>("[data-like]");
+        const statElements = new Map(
+          [...document.querySelectorAll<HTMLElement>("[data-stat]")].map((element) => [element.dataset.stat!, element]),
+        );
+        if (likeButton) statElements.set("likes", likeButton.querySelector<HTMLElement>(".stat-value")!);
+
+        const showStats = (stats: Record<string, number>) => {
+          for (const [name, element] of statElements) element.textContent = String(stats[name] ?? 0);
+        };
+        const increment = async (statName: "views" | "likes" | "link_clicks") => {
+          const { data, error } = await supabase.rpc("increment_stat", { stat_name: statName });
+          if (error) throw error;
+          showStats({ ...data, links: data.link_clicks });
+        };
+
+        const loadStats = async () => {
+          const { data, error } = await supabase.from("page_stats").select("views, likes, link_clicks").eq("id", "profile").single();
+          if (error) throw error;
+          showStats({ ...data, links: data.link_clicks });
+          try {
+            if (!sessionStorage.getItem("zelva-viewed")) {
+              await increment("views");
+              sessionStorage.setItem("zelva-viewed", "1");
+            }
+          } catch (error) { console.warn("Could not count view", error); }
+          try { if (localStorage.getItem("zelva-liked")) likeButton?.classList.add("liked"); } catch { /* private mode */ }
+        };
+        loadStats().catch((error) => console.warn("Could not load stats", error));
+
+        likeButton?.addEventListener("click", () => {
+          if (likeButton.classList.contains("liked")) return;
+          likeButton.classList.add("liked");
+          try { localStorage.setItem("zelva-liked", "1"); } catch { /* private mode */ }
+          increment("likes").catch((error) => {
+            likeButton.classList.remove("liked");
+            try { localStorage.removeItem("zelva-liked"); } catch { /* private mode */ }
+            console.warn("Could not count like", error);
+          });
+        });
+        document.querySelectorAll("[data-outbound]").forEach((link) => {
+          link.addEventListener("click", () => {
+            increment("link_clicks").catch((error) => console.warn("Could not count link click", error));
+          });
+        });
+      }
 
       // still background for reduced-motion users
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -123,6 +181,7 @@ import "../styles/glass.css";
       const musicIcon = document.getElementById("musicIcon")!;
       const musicEq = document.getElementById("musicEq")!;
       const trackName = document.getElementById("trackName")!;
+      const trackNameText = document.getElementById("trackNameText")!;
       const prevBtn = document.getElementById("prevBtn")!;
       const nextBtn = document.getElementById("nextBtn")!;
       const volSlider = document.getElementById("volSlider") as HTMLInputElement;
@@ -161,11 +220,31 @@ import "../styles/glass.css";
         musicToggle.title = playing ? "Mute music" : "Play music";
       }
 
+      function setTrackLabel(label: string) {
+        trackNameText.textContent = label;
+        trackName.title = label;
+        // restart the scroll animation cleanly on track change
+        trackName.classList.remove("is-overflowing");
+        void trackName.offsetWidth;
+        requestAnimationFrame(checkTrackOverflow);
+      }
+
+      function checkTrackOverflow() {
+        const overflow = trackNameText.scrollWidth - trackName.clientWidth;
+        if (overflow > 1) {
+          trackName.style.setProperty("--scroll-dist", `${Math.ceil(overflow)}px`);
+          const dur = Math.min(12, Math.max(4, overflow / 25));
+          trackName.style.setProperty("--scroll-dur", `${dur.toFixed(1)}s`);
+          trackName.classList.add("is-overflowing");
+        } else {
+          trackName.classList.remove("is-overflowing");
+        }
+      }
+      window.addEventListener("resize", checkTrackOverflow);
+
       function showTrack() {
         const t = tracks[trackIdx];
-        const label = `${t.title} — ${t.artist}`;
-        trackName.textContent = label;
-        trackName.title = label;
+        setTrackLabel(`${t.title} — ${t.artist}`);
       }
 
       function playTrack(i: number) {
@@ -202,7 +281,7 @@ import "../styles/glass.css";
         errorSkips++;
         if (errorSkips >= tracks.length) {
           musicPill.classList.add("pill-empty");
-          trackName.textContent = "no tracks found";
+          setTrackLabel("no tracks found");
           setPlayingUI(false);
         } else {
           playTrack(trackIdx + 1);
@@ -215,6 +294,8 @@ import "../styles/glass.css";
         document.body.classList.add("entered");
         enter.classList.add("enter--hidden");
         setTimeout(() => enter.remove(), 900);
+        playEntrance();
+        playNameTyping();
         playTrack(0);
       });
 
@@ -260,6 +341,7 @@ import "../styles/glass.css";
       * { box-sizing: border-box; }
       :root {
         color-scheme: dark;
+        --radius: 16px;
         --page-bg: #0d0316;
         --text: #fff;
         --text-body: rgba(255, 255, 255, 0.82);
@@ -278,6 +360,8 @@ import "../styles/glass.css";
         --card-inset-top: rgba(255, 255, 255, 0.25);
         --card-inset-bottom: rgba(255, 255, 255, 0.06);
         --card-shadow: rgba(0, 0, 0, 0.75);
+        --shadow-drop: 0 30px 80px -20px var(--card-shadow);
+        --shadow-glow: 0 18px 50px -20px rgba(255, 90, 200, 0.35), 0 0 60px -18px rgba(255, 80, 180, 0.45);
         --ring-gap: rgba(26, 8, 39, 0.9);
         --status-gap: rgba(26, 8, 39, 0.95);
 
@@ -288,7 +372,6 @@ import "../styles/glass.css";
       }
       body.light {
         color-scheme: light;
-        --page-bg: #f6e7f2;
         --text: #33123f;
         --text-body: rgba(51, 18, 63, 0.8);
         --text-muted: rgba(51, 18, 63, 0.55);
@@ -324,10 +407,6 @@ import "../styles/glass.css";
       body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
 
       .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--page-bg); }
-      body.light .bg-tint { background: rgba(246, 231, 242, 0.5); }
-      body.light .blob { mix-blend-mode: multiply; }
-      body.light .blob-a { background: rgba(255, 150, 210, 0.55); }
-      body.light .blob-b { background: rgba(190, 150, 230, 0.6); }
       .bg-img {
         position: absolute;
         inset: -8%;
@@ -337,26 +416,13 @@ import "../styles/glass.css";
         opacity: 0.55;
         filter: saturate(1.4);
         animation: bg-drift 26s ease-in-out infinite alternate;
-        transition: opacity 0.5s ease;
+        transition: opacity 0.5s ease, filter 0.9s ease;
       }
       .bg-img.bg-fade { opacity: 0; }
       .bg-tint {
         position: absolute;
         inset: 0;
         background: rgba(13, 3, 22, 0.25);
-      }
-      .blob { position: absolute; border-radius: 50%; filter: blur(90px); mix-blend-mode: screen; }
-      .blob-a {
-        width: 44vmax; height: 44vmax;
-        left: -10vmax; top: -12vmax;
-        background: rgba(255, 90, 200, 0.4);
-        animation: blob-a 18s ease-in-out infinite alternate;
-      }
-      .blob-b {
-        width: 40vmax; height: 40vmax;
-        right: -8vmax; bottom: -10vmax;
-        background: rgba(123, 61, 146, 0.5);
-        animation: blob-b 22s ease-in-out infinite alternate;
       }
       .bg-grain {
         position: absolute; inset: 0;
@@ -367,15 +433,6 @@ import "../styles/glass.css";
         from { transform: scale(1.02) translate(-1.5%, -1%); }
         to { transform: scale(1.1) translate(1.5%, 1.5%); }
       }
-      @keyframes blob-a {
-        from { transform: translate(0, 0) scale(1); }
-        to { transform: translate(9vmax, 7vmax) scale(1.25); }
-      }
-      @keyframes blob-b {
-        from { transform: translate(0, 0) scale(1.15); }
-        to { transform: translate(-8vmax, -6vmax) scale(0.95); }
-      }
-
       main {
         position: relative;
         z-index: 1;
@@ -459,14 +516,14 @@ import "../styles/glass.css";
         font-size: 1.1rem;
         color: var(--accent-soft);
         cursor: pointer;
-        border-radius: 999px;
+        border-radius: var(--radius);
         background:
           url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
           var(--pill-bg);
         border: 1px solid var(--glass-border);
         backdrop-filter: blur(16px) saturate(1.4);
         -webkit-backdrop-filter: blur(16px) saturate(1.4);
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 6px 20px -12px rgba(255, 90, 200, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        box-shadow: var(--shadow-drop), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
         opacity: 0;
         transform: translateY(-12px);
         pointer-events: none;
@@ -476,6 +533,12 @@ import "../styles/glass.css";
       .theme-toggle { right: 1.1rem; }
       body.entered .float-pill { opacity: 1; transform: none; pointer-events: auto; }
       .float-pill.beaming { border-color: transparent; }
+      /* keep the pill's beam glowing while a child control (play/skip/volume) is hovered */
+      .float-pill:has(.pill-btn.beaming, .vol-slider.beaming) { border-color: transparent; }
+      .float-pill:has(.pill-btn.beaming, .vol-slider.beaming) > .beam-border::before {
+        opacity: 1;
+        animation-play-state: running;
+      }
       .pill-empty { opacity: 0.45 !important; }
       .vol-wrap {
         position: relative;
@@ -554,6 +617,7 @@ import "../styles/glass.css";
       }
       .track-name {
         max-width: 130px;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -561,6 +625,20 @@ import "../styles/glass.css";
         font-weight: 500;
         color: var(--text-muted);
         padding-left: 0.15rem;
+      }
+      .track-name-text {
+        display: inline-block;
+        white-space: nowrap;
+        will-change: transform;
+      }
+      /* ping-pong scroll when the label overflows, so the full name stays readable */
+      .track-name.is-overflowing { text-overflow: clip; }
+      .track-name.is-overflowing .track-name-text {
+        animation: track-scroll var(--scroll-dur, 6s) ease-in-out infinite alternate;
+      }
+      @keyframes track-scroll {
+        0%, 12% { transform: translateX(0); }
+        88%, 100% { transform: translateX(calc(var(--scroll-dist, 40px) * -1)); }
       }
       @media (max-width: 480px) {
         .track-name { display: none; }
@@ -585,7 +663,7 @@ import "../styles/glass.css";
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .bg-img, .blob, .enter-cta, .eq span { animation: none; }
+        .bg-img, .enter-cta, .eq span, .track-name-text { animation: none !important; }
         main, .enter, .float-pill { transition: none; }
       }
     </style>
