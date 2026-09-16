@@ -42,7 +42,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
     <!-- liquid-glass backdrop -->
     <div class="bg" aria-hidden="true">
-      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" autoplay muted loop playsinline aria-hidden="true"></video>
+      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" muted loop playsinline preload="auto" aria-hidden="true"></video>
       <div class="bg-tint"></div>
       <div class="bg-grain"></div>
     </div>
@@ -153,9 +153,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       }
 
       // still background for reduced-motion users
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        (document.querySelector(".bg-img") as HTMLVideoElement | null)?.pause();
-      }
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       const enter = document.getElementById("enter")!;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
@@ -167,7 +165,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         bgVideo.classList.add("bg-fade");
         setTimeout(() => {
           bgVideo.setAttribute("src", src);
-          bgVideo.play().catch(() => {});
+          if (!reduceMotion) bgVideo.play().catch(() => {});
           const show = () => {
             bgVideo.classList.remove("bg-fade");
             bgVideo.removeEventListener("canplay", show);
@@ -296,6 +294,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         setTimeout(() => enter.remove(), 900);
         playEntrance();
         playNameTyping();
+        if (!reduceMotion) bgVideo.play().catch(() => {});
         playTrack(0);
       });
 
@@ -448,7 +447,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       /* blurred behind the gate, settles into focus once it lifts */
       main { transition: transform 0.9s ease, filter 0.9s ease; }
       body:not(.entered) main { transform: scale(1.035); filter: blur(14px); }
-      body:not(.entered) .bg-img { filter: blur(10px) saturate(1.4); }
+      body:not(.entered) .bg-img { filter: blur(40px) saturate(1.4); }
 
       .cards {
         display: grid;
