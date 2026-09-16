@@ -90,7 +90,7 @@ body.creating .creation--lifted .creation-black { opacity: 0; }
   opacity: 0;
   background: radial-gradient(ellipse at center, transparent 52%, rgba(255, 60, 180, 0.32) 100%);
 }
-body.beatsync .beat-vignette { opacity: calc(var(--beat-pulse, 0) * 0.95); }
+body.beatsync .beat-vignette { opacity: calc(var(--beat-pulse, 0) * 0.35); }
 
 /* standalone `scale` composes with (never fights) the tilt `transform` */
 body.beatsync #view-profile .profile-card {
@@ -102,11 +102,19 @@ body.beatsync #view-profile .avatar-ring {
 body.beatsync #view-profile .name {
   filter: brightness(calc(1 + var(--beat-pulse, 0) * 0.4));
 }
-/* drop the slow filter transition so the bg punches on the beat (brightness only — footage stays raw) */
-body.beatsync .bg-img {
-  transition: opacity 0.5s ease;
-  filter: brightness(calc(1 + var(--beat-pulse, 0) * 0.22));
+/* bg punch on the beat WITHOUT a filter: brightness() on a fullscreen video
+   repaints every pixel 60x/sec (death at 1440p+ and on mobile GPUs). A white
+   overlay at low opacity reads the same and is purely composited. Sits between
+   the backdrop (z-0) and the card (z-1) so only the footage lifts. */
+.beat-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: #fff;
 }
+body.beatsync .beat-flash { opacity: calc(var(--beat-pulse, 0) * 0.03); }
 /* EQ bars are driven straight from the analyser, not the CSS bounce */
 body.beatsync .eq span { animation: none !important; }
 

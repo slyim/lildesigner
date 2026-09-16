@@ -21,7 +21,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     <meta name="generator" content={Astro.generator} />
     <title>liliana · zelvacard</title>
     <meta name="description" content="liliana's profile card" />
-    <meta name="theme-color" content="#0d0316" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff4fa" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0316" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -46,14 +47,15 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     />
   </head>
   <body>
-    <script is:inline>try{if(localStorage.getItem("zelva-theme")==="light")document.body.classList.add("light")}catch(e){}</script>
+    <script is:inline>try{if(matchMedia("(prefers-color-scheme: light)").matches)document.body.classList.add("light")}catch(e){}</script>
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
     <!-- liquid-glass backdrop -->
     <div class="bg" aria-hidden="true">
       <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" muted loop playsinline preload="auto" aria-hidden="true"></video>
     </div>
+    <div class="beat-flash" aria-hidden="true"></div>
 
-    <main>
+    <main inert>
       <div class="cards">
         <ProfileCard />
         <AboutCard />
@@ -81,17 +83,17 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
 
     <div class="beat-vignette" aria-hidden="true"></div>
 
-    <div class="float-pill music-pill" id="musicPill" role="group" aria-label="Music player">
+    <div class="float-pill music-pill" id="musicPill" role="group" aria-label="Music player" inert>
       <span class="beam-border" aria-hidden="true"></span>
-      <button class="pill-btn" id="prevBtn" type="button" title="Previous track">
-        <i class="ph-fill ph-skip-back"></i>
+      <button class="pill-btn" id="prevBtn" type="button" title="Previous track" aria-label="Previous track">
+        <i class="ph-fill ph-skip-back" aria-hidden="true"></i>
       </button>
-      <button class="pill-btn play-btn" id="musicToggle" type="button" title="Play music">
-        <i class="ph-fill ph-speaker-high" id="musicIcon"></i>
+      <button class="pill-btn play-btn" id="musicToggle" type="button" title="Play music" aria-label="Play music">
+        <i class="ph-fill ph-speaker-high" id="musicIcon" aria-hidden="true"></i>
         <span class="eq eq--paused" id="musicEq" aria-hidden="true"><span></span><span></span><span></span></span>
       </button>
-      <button class="pill-btn" id="nextBtn" type="button" title="Next track">
-        <i class="ph-fill ph-skip-forward"></i>
+      <button class="pill-btn" id="nextBtn" type="button" title="Next track" aria-label="Next track">
+        <i class="ph-fill ph-skip-forward" aria-hidden="true"></i>
       </button>
       <span class="vol-wrap">
         <span class="vol-track" aria-hidden="true"></span>
@@ -101,23 +103,18 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       <span class="track-name" id="trackName" title=""><span class="track-name-text" id="trackNameText"></span></span>
     </div>
 
-    <button class="float-pill theme-toggle" id="themeToggle" type="button" title="Light mode">
-      <span class="beam-border" aria-hidden="true"></span>
-      <i class="ph-fill ph-sun" id="themeIcon"></i>
-    </button>
-
-    <nav class="tabbar" id="tabbar" aria-label="Sections">
-      <button class="tab is-active" data-view="profile" type="button" aria-current="page">
-        <i class="ph-fill ph-user"></i><span>Profile</span>
+    <nav class="tabbar" id="tabbar" aria-label="Sections" inert>
+      <button class="tab is-active" data-view="profile" type="button" aria-current="true">
+        <i class="ph-fill ph-user" aria-hidden="true"></i><span>Profile</span>
       </button>
       <button class="tab" data-view="about" type="button">
-        <i class="ph-fill ph-article"></i><span>About Me</span>
+        <i class="ph-fill ph-article" aria-hidden="true"></i><span>About</span>
       </button>
       <button class="tab" data-view="comments" type="button">
-        <i class="ph-fill ph-chats"></i><span>Comments</span>
+        <i class="ph-fill ph-chats" aria-hidden="true"></i><span>Comments</span>
       </button>
       <button class="tab" data-view="gallery" type="button">
-        <i class="ph-fill ph-image"></i><span>Gallery</span>
+        <i class="ph-fill ph-image" aria-hidden="true"></i><span>Gallery</span>
       </button>
     </nav>
 
@@ -151,6 +148,12 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       const analyticsConfig = document.getElementById("supabase-config") as HTMLElement;
       const analyticsUrl = analyticsConfig.dataset.url;
       const analyticsKey = analyticsConfig.dataset.key;
+      // without analytics the like button would be a dead click — park it
+      // disabled (unstyled, so it looks identical) instead of faking it
+      const parkLikeButton = () => {
+        const like = document.querySelector<HTMLButtonElement>("[data-like]");
+        if (like) like.disabled = true;
+      };
       if (analyticsUrl && analyticsKey) {
         // lazy: the SDK (~100KB) loads in the background, never blocks the entrance
         import("@supabase/supabase-js").then(({ createClient }) => {
@@ -158,9 +161,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         }).catch((error) => {
           console.warn("Could not load analytics", error);
           initComments(null);
+          parkLikeButton();
         });
       } else {
         initComments(null);
+        parkLikeButton();
       }
 
       function initAnalytics(supabase: SupabaseClient<ZelvaDB>) {
@@ -192,16 +197,23 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
               sessionStorage.setItem("zelva-viewed", "1");
             }
           } catch (error) { console.warn("Could not count view", error); }
-          try { if (localStorage.getItem("zelva-liked")) likeButton?.classList.add("liked"); } catch { /* private mode */ }
+          try {
+            if (localStorage.getItem("zelva-liked")) {
+              likeButton?.classList.add("liked");
+              likeButton?.setAttribute("aria-pressed", "true");
+            }
+          } catch { /* private mode */ }
         };
         loadStats().catch((error) => console.warn("Could not load stats", error));
 
         likeButton?.addEventListener("click", () => {
           if (likeButton.classList.contains("liked")) return;
           likeButton.classList.add("liked");
+          likeButton.setAttribute("aria-pressed", "true");
           try { localStorage.setItem("zelva-liked", "1"); } catch { /* private mode */ }
           increment("likes").catch((error) => {
             likeButton.classList.remove("liked");
+            likeButton.setAttribute("aria-pressed", "false");
             try { localStorage.removeItem("zelva-liked"); } catch { /* private mode */ }
             console.warn("Could not count like", error);
           });
@@ -233,9 +245,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           bgVideo.setAttribute("src", src);
           if (!reduceMotion) bgVideo.play().catch(() => {});
           const show = () => {
+            // detach first: stale tokens return early and would otherwise
+            // pile a dead listener onto every rapid track skip
+            bgVideo.removeEventListener("canplay", show);
             if (token !== bgToken) return;
             bgVideo.classList.remove("bg-fade");
-            bgVideo.removeEventListener("canplay", show);
           };
           bgVideo.addEventListener("canplay", show);
           setTimeout(() => { if (token === bgToken) bgVideo.classList.remove("bg-fade"); }, 3000);
@@ -285,6 +299,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         musicIcon.className = playing ? "ph-fill ph-speaker-high" : "ph-fill ph-speaker-slash";
         musicEq.classList.toggle("eq--paused", !playing);
         musicToggle.title = playing ? "Mute music" : "Play music";
+        musicToggle.setAttribute("aria-label", playing ? "Mute music" : "Play music");
       }
 
       function setTrackLabel(label: string) {
@@ -379,6 +394,13 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       enter.addEventListener("click", async () => {
         if (entered) return;
         entered = true;
+        // the gate dies here: release the pre-enter inert parking (A) and
+        // hand keyboard focus to the content instead of stranding it on a
+        // removed node (programmatic focus shows no ring for mouse users)
+        document.querySelector("main")?.removeAttribute("inert");
+        musicPill.removeAttribute("inert");
+        document.getElementById("tabbar")?.removeAttribute("inert");
+        document.querySelector<HTMLButtonElement>(".tab.is-active")?.focus({ preventScroll: true });
         enter.classList.add("enter--hidden");
         setTimeout(() => enter.remove(), 900);
         if (reduceMotion) {
@@ -434,6 +456,16 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           return current.includes(tracks[0].src);
         }
       }
+
+      // hidden tabs keep decoding fullscreen video for nobody — park it.
+      // Music is a separate element, so it plays on uninterrupted.
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          bgVideo.pause();
+        } else if (entered && !reduceMotion && !document.body.classList.contains("creating")) {
+          bgVideo.play().catch(() => {});
+        }
+      });
 
       musicToggle.addEventListener("click", () => {
         if (!audio.src) { playTrack(trackIdx, { force: true }); return; }
@@ -499,7 +531,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         tabs.forEach((t) => {
           const active = t.dataset.view === name;
           t.classList.toggle("is-active", active);
-          if (active) t.setAttribute("aria-current", "page");
+          // same-page view switch, not page navigation — "true", not "page"
+          if (active) t.setAttribute("aria-current", "true");
           else t.removeAttribute("aria-current");
         });
       }
@@ -507,21 +540,13 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         el.addEventListener("click", () => showView((el as HTMLElement).dataset.view!));
       });
 
-      // theme toggle (persisted)
-      const themeToggle = document.getElementById("themeToggle")!;
-      const themeIcon = document.getElementById("themeIcon")!;
-      function applyTheme(light: boolean) {
-        document.body.classList.toggle("light", light);
-        themeIcon.className = light ? "ph-fill ph-moon" : "ph-fill ph-sun";
-        themeToggle.title = light ? "Dark mode" : "Light mode";
-        try { localStorage.setItem("zelva-theme", light ? "light" : "dark"); } catch { /* private mode */ }
-      }
-      let startLight = false;
-      try { startLight = localStorage.getItem("zelva-theme") === "light"; } catch { /* private mode */ }
-      applyTheme(startLight);
-      themeToggle.addEventListener("click", () => {
-        applyTheme(!document.body.classList.contains("light"));
-      });
+      // theme follows the OS/browser setting and tracks live changes —
+      // no manual toggle. Also retires the old manual-theme key, if any.
+      const themeQuery = window.matchMedia("(prefers-color-scheme: light)");
+      const applyTheme = () => document.body.classList.toggle("light", themeQuery.matches);
+      applyTheme();
+      themeQuery.addEventListener("change", applyTheme);
+      try { localStorage.removeItem("zelva-theme"); } catch { /* private mode */ }
     </script>
 
     <style is:global>
@@ -539,13 +564,13 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         --handle: rgba(255, 185, 236, 0.85);
         --glass: rgba(255, 255, 255, 0.06);
         --glass-border: rgba(255, 255, 255, 0.12);
-        --glass-inset: rgba(255, 255, 255, 0.14);
+        --glass-inset: rgba(255, 208, 236, 0.14);
         --card-base: rgba(26, 8, 39, 0.36);
-        --card-sheen-a: rgba(255, 255, 255, 0.14);
-        --card-sheen-b: rgba(255, 255, 255, 0.03);
+        --card-sheen-a: rgba(255, 208, 236, 0.14);
+        --card-sheen-b: rgba(255, 208, 236, 0.03);
         --card-border: rgba(255, 255, 255, 0.16);
-        --card-inset-top: rgba(255, 255, 255, 0.25);
-        --card-inset-bottom: rgba(255, 255, 255, 0.06);
+        --card-inset-top: rgba(255, 208, 236, 0.25);
+        --card-inset-bottom: rgba(255, 208, 236, 0.06);
         --card-shadow: rgba(0, 0, 0, 0.75);
         --shadow-drop: 0 30px 80px -20px var(--card-shadow);
         --shadow-glow: 0 18px 50px -20px rgba(255, 90, 200, 0.35), 0 0 60px -18px rgba(255, 80, 180, 0.45);
@@ -568,12 +593,12 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         --handle: rgba(184, 54, 146, 0.9);
         --glass: rgba(255, 255, 255, 0.55);
         --glass-border: rgba(184, 54, 146, 0.18);
-        --glass-inset: rgba(255, 255, 255, 0.7);
+        --glass-inset: rgba(255, 226, 244, 0.7);
         --card-base: rgba(255, 244, 250, 0.5);
-        --card-sheen-a: rgba(255, 255, 255, 0.7);
-        --card-sheen-b: rgba(255, 255, 255, 0.25);
+        --card-sheen-a: rgba(255, 226, 244, 0.7);
+        --card-sheen-b: rgba(255, 226, 244, 0.25);
         --card-border: rgba(255, 255, 255, 0.8);
-        --card-inset-top: rgba(255, 255, 255, 0.8);
+        --card-inset-top: rgba(255, 226, 244, 0.8);
         --card-inset-bottom: rgba(184, 54, 146, 0.08);
         --card-shadow: rgba(150, 60, 130, 0.35);
         --ring-gap: rgba(255, 255, 255, 0.92);
@@ -701,6 +726,12 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         animation: cta-breathe 2.4s ease-in-out infinite;
       }
       .enter:hover .enter-cta { color: #fff; }
+      /* keyboard focus on the gate: same brightening as hover, plus an
+         outline that survives the blurred backdrop (UA default is near
+         invisible at 1px on this background) */
+      .enter:focus { outline: none; }
+      .enter:focus-visible .enter-cta { color: #fff; }
+      .enter:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 122, 217, 0.65); }
       .enter-warn {
         font-size: 0.68rem;
         font-weight: 400;
@@ -739,7 +770,6 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s, color 0.2s ease, border-color 0.2s ease;
       }
       .music-pill { left: 1.1rem; gap: 0.3rem; cursor: default; }
-      .theme-toggle { right: 1.1rem; }
       body.entered .float-pill { opacity: 1; transform: none; pointer-events: auto; }
 
       /* ——— section tab bar ——— */
@@ -749,7 +779,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         left: 50%;
         z-index: 40;
         display: flex;
-        gap: 0.6rem;
+        /* span the card width (profile card: 560px) with the end tabs
+           flush to its edges, instead of clustering in the center */
+        width: min(560px, calc(100vw - 2.5rem));
+        justify-content: space-between;
+        gap: 1rem;
         opacity: 0;
         transform: translate(-50%, -12px);
         pointer-events: none;
@@ -763,7 +797,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 52%);
+        background: linear-gradient(180deg, rgba(255, 208, 236, 0.12), transparent 52%);
         pointer-events: none;
       }
       .tab {
@@ -809,9 +843,16 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         .tabbar { top: 4.9rem; }
       }
       @media (max-width: 480px) {
-        .tabbar { gap: 0.4rem; top: 4.6rem; max-width: calc(100vw - 1rem); }
-        .tab { padding: 0.55rem 0.7rem; font-size: 0.74rem; gap: 0.35rem; }
+        .tabbar { gap: 0.5rem; top: 4.6rem; max-width: calc(100vw - 1rem); }
+        .tab { padding: 0.55rem 0.6rem; font-size: 0.74rem; gap: 0.35rem; }
         .tab i { font-size: 0.95rem; }
+      }
+      /* ≤360px phones (same 4-tab row, narrower budget): shave padding/type
+         so the row still fits its max-width instead of clipping at the edges */
+      @media (max-width: 360px) {
+        .tabbar { gap: 0.3rem; }
+        .tab { padding: 0.5rem 0.45rem; font-size: 0.7rem; gap: 0.3rem; }
+        .tab i { font-size: 0.9rem; }
       }
       .float-pill.beaming { border-color: transparent; }
       /* keep the pill's beam glowing while a child control (play/skip/volume) is hovered */
@@ -870,6 +911,14 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         box-shadow: 0 0 8px rgba(255, 90, 200, 0.8);
       }
       .vol-slider::-moz-range-track { height: 4px; background: transparent; }
+      /* outline is none above, so keyboard focus needs its own ring — a glow
+         on the thumb plus an accent track, matching the hover language */
+      .vol-slider:focus-visible::-webkit-slider-thumb {
+        box-shadow: 0 0 0 3px rgba(255, 90, 200, 0.35), 0 0 12px rgba(255, 90, 200, 1);
+      }
+      .vol-slider:focus-visible::-moz-range-thumb {
+        box-shadow: 0 0 0 3px rgba(255, 90, 200, 0.35), 0 0 12px rgba(255, 90, 200, 1);
+      }
       .vol-slider.beaming::-webkit-slider-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
       .vol-slider.beaming::-moz-range-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
       @keyframes thumb-pulse {
@@ -941,6 +990,19 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       @keyframes eq-bounce {
         0%, 100% { transform: scaleY(0.4); }
         50% { transform: scaleY(1); }
+      }
+
+      /* ——— mobile perf: blur radii dominate GPU cost, and the drift's
+         116% overscan is pure overdraw on a small screen. The video itself
+         still plays, so the background never looks static. */
+      @media (max-width: 768px) {
+        .bg-img { inset: 0; width: 100%; height: 100%; animation: none; }
+        body:not(.entered) .bg-img { filter: blur(16px); }
+        body:not(.entered) main { filter: blur(10px); }
+        .enter {
+          backdrop-filter: blur(20px) saturate(1.3);
+          -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {

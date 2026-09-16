@@ -33,16 +33,16 @@ import { profile } from "../data/profile";
     <!-- Meta row: live views · location · occupation · like button -->
     <div class="meta layer" data-depth="16">
       <span class="meta-item" title="Page views">
-        <i class="ph-fill ph-eye"></i><span class="meta-value" data-stat="views">0</span>
+        <i class="ph-fill ph-eye" aria-hidden="true"></i><span class="meta-value" data-stat="views">0</span>
       </span>
       <span class="meta-item" title="Location">
-        <i class="ph-fill ph-map-pin"></i><span class="meta-value">{profile.location}</span>
+        <i class="ph-fill ph-map-pin" aria-hidden="true"></i><span class="meta-value">{profile.location}</span>
       </span>
       <span class="meta-item" title="Occupation">
-        <i class="ph-fill ph-briefcase"></i><span class="meta-value">{profile.occupation}</span>
+        <i class="ph-fill ph-briefcase" aria-hidden="true"></i><span class="meta-value">{profile.occupation}</span>
       </span>
-      <button class="meta-item meta-like" type="button" data-like aria-label="Like this page" title="Like this page">
-        <i class="ph-fill ph-heart"></i><span class="meta-value stat-value">0</span>
+      <button class="meta-item meta-like" type="button" data-like aria-label="Like this page" aria-pressed="false" title="Like this page">
+        <i class="ph-fill ph-heart" aria-hidden="true"></i><span class="meta-value stat-value">0</span>
       </button>
     </div>
 
@@ -69,7 +69,7 @@ import { profile } from "../data/profile";
     <div class="links layer" data-depth="26">
       {profile.links.map((l) => (
         <a class="social" data-outbound href={l.href} title={l.label} aria-label={l.label} target="_blank" rel="noopener">
-          <i class={l.icon}></i>
+          <i class={l.icon} aria-hidden="true"></i>
         </a>
       ))}
     </div>
@@ -193,8 +193,8 @@ import { profile } from "../data/profile";
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }
-  .handle { margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 500; color: var(--handle); text-align: center; }
-  .bio { margin: 0.8rem 0 0; font-size: 1.02rem; font-weight: 300; line-height: 1.55; color: var(--text-body); text-align: center; }
+  .handle { margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 500; color: var(--handle); text-align: center; overflow-wrap: anywhere; }
+  .bio { margin: 0.8rem 0 0; font-size: 1.02rem; font-weight: 300; line-height: 1.55; color: var(--text-body); text-align: center; overflow-wrap: anywhere; }
 
   /* ——— meta row ——— */
   .meta {

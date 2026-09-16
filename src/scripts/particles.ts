@@ -48,11 +48,15 @@ export function initCardParticles() {
   let raf = 0;
   let running = false;
   let visible = true;
+  // small screens = weak GPUs: fewer dots, coarser canvas, half rate.
+  // Re-evaluated on resize so rotation/dragging across monitors adapts.
+  let lowPower = false;
 
   const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
   function seed() {
-    const count = Math.round(Math.min(48, Math.max(20, (w * h) / 9000)));
+    const base = Math.min(48, Math.max(20, (w * h) / 9000));
+    const count = Math.round(lowPower ? base / 2 : base);
     dots = Array.from({ length: count }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -68,7 +72,8 @@ export function initCardParticles() {
 
   function resize() {
     const rect = el.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    lowPower = window.matchMedia("(max-width: 768px)").matches;
+    const dpr = Math.min(lowPower ? 1.5 : 2, window.devicePixelRatio || 1);
     w = Math.max(1, Math.round(rect.width));
     h = Math.max(1, Math.round(rect.height));
     canvas.width = Math.round(w * dpr);
@@ -80,6 +85,12 @@ export function initCardParticles() {
   let last = 0;
   function frame(t: number) {
     if (!running) return;
+    // low-power: every other frame. Drift is slow; 30fps reads the same,
+    // and dt below keeps the motion speed exact.
+    if (lowPower && last !== 0 && t - last < 33) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
     const dt = Math.min(0.05, (t - last) / 1000 || 0.016);
     last = t;
     g.clearRect(0, 0, w, h);
@@ -116,6 +127,9 @@ export function initCardParticles() {
     }
   }
 
+  // viewport-only resizes (desktop window drag) don't change the card's box,
+  // so the observer below wouldn't fire — watch the breakpoint directly too
+  window.matchMedia("(max-width: 768px)").addEventListener("change", resize);
   new ResizeObserver(resize).observe(card);
   new IntersectionObserver(([e]) => {
     visible = e.isIntersecting;

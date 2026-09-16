@@ -165,6 +165,20 @@ body.custom-cursor, body.custom-cursor * { cursor: none !important; }
   50% { text-shadow: 0 0 22px rgba(255, 90, 200, 0.9); }
 }
 
+/* ——— mobile perf: backdrop-blur cost scales with radius; 18px still
+   reads as liquid glass over video, at a fraction of the GPU cost. */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+}
+/* touch devices never tilt (see tilt.ts), so don't pin every card in its
+   own composited layer — that memory is better spent on the video. */
+@media (hover: none) {
+  .glass-card { will-change: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .glass-card { transform: none !important; }
   .glass-card, .float-pill, .social, .meta-item, .avatar-ring, .pill-btn, .tab,

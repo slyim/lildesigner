@@ -107,7 +107,15 @@ export function initComments(supabase: SupabaseClient<ZelvaDB> | null) {
   // ——— modal stack: ESC/backdrop close the topmost, focus returns home ———
   interface OpenModal { el: HTMLElement; opener: HTMLElement | null; }
   const stack: OpenModal[] = [];
-  const syncScrollLock = () => { document.body.style.overflow = stack.length ? "hidden" : ""; };
+  // background roots parked inert while any modal is open: Tab can't leak
+  // behind the dialog, and browse-mode readers stay inside it too
+  const backdropRoots = ["main", "#musicPill", "#tabbar"]
+    .map((s) => document.querySelector<HTMLElement>(s))
+    .filter((el): el is HTMLElement => !!el);
+  const syncScrollLock = () => {
+    document.body.style.overflow = stack.length ? "hidden" : "";
+    for (const root of backdropRoots) root.inert = stack.length > 0;
+  };
   function openModal(el: HTMLElement, closeBtn: HTMLButtonElement) {
     if (!el.hidden) return;
     stack.push({ el, opener: document.activeElement as HTMLElement | null });
@@ -124,7 +132,32 @@ export function initComments(supabase: SupabaseClient<ZelvaDB> | null) {
     try { m.opener?.focus?.(); } catch { /* opener gone */ }
   }
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && stack.length) closeModal(stack[stack.length - 1].el);
+    if (!stack.length) return;
+    if (e.key === "Escape") {
+      closeModal(stack[stack.length - 1].el);
+      return;
+    }
+    // focus trap: Tab wraps inside the topmost modal instead of leaking
+    // to the (inert, but still painted) background
+    if (e.key === "Tab") {
+      const top = stack[stack.length - 1].el;
+      const focusable = [...top.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((el) => el.offsetParent !== null);
+      if (!focusable.length) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
   for (const m of [modal, postModal]) {
     m.querySelector("[data-close-modal]")?.addEventListener("click", () => closeModal(m));

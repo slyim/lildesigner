@@ -70,12 +70,17 @@ async function bang(getVolume: () => number) {
     if (p) p.catch(() => {});
   } catch { /* caller retries on handoff */ }
   gsap.fromTo(white, { opacity: 0.95 }, { opacity: 0, duration: 0.35, ease: "expo.out" });
+  // viewport-sized ring: scale(9) on the 140px disc spans 1260px — fine on a
+  // laptop, but on a 2k monitor it fades out mid-screen and the bang reads as
+  // a hiccup. Size the diameter to clear the longest edge with margin.
+  const shockScale = Math.max(9, (Math.max(window.innerWidth, window.innerHeight) / 140) * 1.15);
+  const shockDur = Math.round(900 + shockScale * 25);
   const shockAnim = shock.animate(
     [
       { opacity: 1, transform: "scale(0.15)" },
-      { opacity: 0, transform: "scale(9)" },
+      { opacity: 0, transform: `scale(${shockScale.toFixed(1)})` },
     ],
-    { duration: 1100, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+    { duration: shockDur, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
   );
   // swing to the middle: the tilted card sweeps around to face the viewer,
   // overshooting a hair past frontal before settling. Same function order +
@@ -105,7 +110,7 @@ async function bang(getVolume: () => number) {
     requestAnimationFrame(shake);
   }
 
-  await wait(BANG_HOLD_MS);
+  await wait(Math.max(BANG_HOLD_MS, shockDur));
   shockAnim.cancel();
   try {
     await land.finished;
@@ -137,7 +142,7 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
   // tap the beat-sync analyser BEFORE first play: attaching a
   // MediaElementSource to an already-playing element reroutes live audio
   // with an audible clip. startBeatSync later reuses this same tap.
-  tapAnalyser(audio, 256);
+  tapAnalyser(audio, 1024);
   // metadata isn't in yet, so a bare currentTime assignment throws — hook it
   const startAt = opts.start ?? 0;
   if (startAt > 0) {

@@ -27,7 +27,7 @@ export const privacy: LegalDoc = {
     },
     {
       heading: "3. Local Storage",
-      body: "Browser storage keeps your theme and volume preferences, prevents repeat likes from the same browser, and avoids counting repeated views in one tab session. This data stays on your device.",
+      body: "Browser storage keeps your volume preferences, prevents repeat likes from the same browser, and avoids counting repeated views in one tab session. This data stays on your device.",
     },
     {
       heading: "4. Updates to This Policy",

@@ -15,11 +15,11 @@ const { id, doc } = Astro.props;
     <span class="beam-border" aria-hidden="true"></span>
 
     <button class="legal-back" data-view="profile" type="button">
-      <i class="ph-bold ph-arrow-left"></i> back
+      <i class="ph-bold ph-arrow-left" aria-hidden="true"></i> back
     </button>
 
     <header class="legal-head layer">
-      <span class="legal-icon"><i class={doc.icon}></i></span>
+      <span class="legal-icon"><i class={doc.icon} aria-hidden="true"></i></span>
       <div class="legal-titles">
         <h2>{doc.title}</h2>
         <p class="legal-updated">Last updated · {doc.updated}</p>
