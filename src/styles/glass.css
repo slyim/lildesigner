@@ -31,13 +31,16 @@
   transition: border-color 0.3s ease;
 }
 
-/* flat top light */
+/* liquid-glass specular: diagonal sheen falling off top-left + faint
+   bottom reflection, both theme-aware via the sheen tokens */
 .glass-card::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(255, 255, 255, 0.05);
+  background:
+    linear-gradient(135deg, var(--card-sheen-a), transparent 42%),
+    linear-gradient(315deg, var(--card-sheen-b), transparent 46%);
   pointer-events: none;
   z-index: 5;
 }
@@ -104,6 +107,58 @@
 
 .layer { transform: translateZ(var(--z, 0)); }
 
+/* ——— custom blob cursor (see cursor.ts; desktop pointers only) ——— */
+body.custom-cursor, body.custom-cursor * { cursor: none !important; }
+.cursor-blob {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 200, 235, 0.95), rgba(255, 90, 200, 0.75) 70%);
+  box-shadow: 0 0 18px rgba(255, 90, 200, 0.65), 0 0 46px rgba(255, 90, 200, 0.3);
+  animation: blob-morph 3.2s ease-in-out infinite alternate, blob-breathe 2.1s ease-in-out infinite alternate;
+}
+.cursor-blob--shown { opacity: 1; }
+/* pressed: drop the morph (a paused animation would still own border-radius),
+   snap to a circle, keep breathing */
+.cursor-blob--down { animation: blob-breathe 2.1s ease-in-out infinite alternate; border-radius: 50%; }
+@keyframes blob-morph {
+  0% { border-radius: 38% 62% 60% 40% / 52% 38% 62% 48%; }
+  33% { border-radius: 62% 38% 42% 58% / 42% 62% 38% 58%; }
+  66% { border-radius: 52% 48% 38% 62% / 62% 42% 58% 38%; }
+  100% { border-radius: 40% 60% 58% 42% / 48% 58% 42% 52%; }
+}
+/* breathing glow layered over the morph (box-shadow never fights the JS transform) */
+@keyframes blob-breathe {
+  from { box-shadow: 0 0 14px rgba(255, 90, 200, 0.55), 0 0 38px rgba(255, 90, 200, 0.25); }
+  to { box-shadow: 0 0 24px rgba(255, 90, 200, 0.8), 0 0 60px rgba(255, 90, 200, 0.4); }
+}
+/* shed droplets + click ripple (positioned + fired from cursor.ts via WAAPI) */
+.cursor-trail, .cursor-ripple {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99;
+  pointer-events: none;
+  opacity: 0;
+}
+.cursor-trail {
+  border-radius: 45% 55% 58% 42% / 52% 45% 55% 48%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 190, 230, 0.9), rgba(255, 90, 200, 0.6) 70%);
+}
+.cursor-ripple {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 150, 215, 0.9);
+  box-shadow: 0 0 16px rgba(255, 90, 200, 0.5);
+}
+
 /* shared text-glow pulse for text buttons */
 @keyframes text-pulse {
   0%, 100% { text-shadow: 0 0 10px rgba(255, 90, 200, 0.4); }
@@ -112,11 +167,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .glass-card { transform: none !important; }
-  .glass-card, .float-pill, .social, .stat, .avatar-ring, .pill-btn,
+  .glass-card, .float-pill, .social, .meta-item, .avatar-ring, .pill-btn, .tab,
   .legal button, .legal-back, .legal-icon, .beam-border::before,
   .vol-slider::-webkit-slider-thumb, .vol-slider::-moz-range-thumb {
     animation: none !important;
   }
+  .cursor-blob, .cursor-trail, .cursor-ripple { display: none; }
   .beam-border { display: none; }
   .glass-card.beaming { border-color: var(--card-border); }
   .social.beaming, .float-pill.beaming { border-color: var(--glass-border); }

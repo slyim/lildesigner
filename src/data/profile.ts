@@ -7,6 +7,13 @@ export const profile = {
   avatar: "/avatar.jpg",
   banner: "/bg.gif",
   status: "online" as const,
+  location: "earth",
+  occupation: "product designer",
+  // Discord presence box (via free Lanyard API — join https://discord.gg/lanyard
+  // with this account first). Empty = box stays hidden.
+  discordId: "",
+  // Weather box (free Open-Meteo, resolved at runtime). Empty = hidden.
+  weatherCity: "",
   links: [
     { icon: "ph-fill ph-globe", label: "Portfolio", href: "https://liladesign.dev" },
     { icon: "ph-fill ph-github-logo", label: "GitHub", href: "https://github.com/slyim" },
@@ -14,10 +21,5 @@ export const profile = {
     { icon: "ph-fill ph-instagram-logo", label: "Instagram", href: "https://www.instagram.com/violilygirl/" },
     { icon: "ph-fill ph-dribbble-logo", label: "Dribbble", href: "https://dribbble.com/Shylesiana" },
     { icon: "ph-fill ph-behance-logo", label: "Behance", href: "https://www.behance.net/eb0aa8d3" },
-  ],
-  stats: [
-    { value: "0", label: "views" },
-    { value: "0", label: "likes" },
-    { value: "0", label: "links" },
   ],
 };

@@ -3,7 +3,7 @@
 // All hover animations (border beams, pulses) trigger on .beaming.
 
 const HOVER_SELECTOR =
-  ".glass-card, .social, .float-pill, .stat, .avatar-ring, .pill-btn, .legal button, .legal-back, .legal-icon, .vol-slider";
+  ".glass-card, .social, .float-pill, .meta-item, .avatar-ring, .pill-btn, .tab, .legal button, .legal-back, .legal-icon, .vol-slider, .comment-action";
 
 export function initHoverGlow() {
   let current: Element | null = null;
@@ -19,5 +19,10 @@ export function initHoverGlow() {
   });
   document.addEventListener("pointerout", (e) => {
     if (!(e as PointerEvent).relatedTarget) setBeaming(null);
+  });
+  document.addEventListener("pointercancel", () => setBeaming(null));
+  // taps fake a hover on touch — clear it on release so glows never stick
+  document.addEventListener("pointerup", (e) => {
+    if ((e as PointerEvent).pointerType !== "mouse") setBeaming(null);
   });
 }

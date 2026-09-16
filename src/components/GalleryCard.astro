@@ -1,0 +1,71 @@
+---
+// Gallery tab — tile grid over the same glass card.
+import { gallery } from "../data/gallery";
+---
+
+<div class="scene view-hidden" id="view-gallery">
+  <article class="glass-card gallery-card" data-tilt>
+    <div class="card-glare" data-glare></div>
+    <span class="beam-border" aria-hidden="true"></span>
+
+    <div class="gallery-grid layer">
+      {gallery.map((g) => (
+        <figure class="tile">
+          <img src={g.src} alt={g.alt} loading="lazy" />
+          <figcaption>{g.caption}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </article>
+</div>
+
+<style>
+  .gallery-card {
+    width: min(460px, calc(100vw - 2.5rem));
+    padding: 1.2rem 1.2rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    max-height: min(78vh, 700px);
+  }
+  .gallery-grid {
+    --z: 12px;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.9rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 122, 217, 0.5) transparent;
+    padding: 0.1rem;
+  }
+  .gallery-grid::-webkit-scrollbar { width: 5px; }
+  .gallery-grid::-webkit-scrollbar-thumb { background: rgba(255, 122, 217, 0.5); border-radius: 3px; }
+  /* poster style: tall art, title beneath */
+  .tile { margin: 0; min-width: 0; cursor: default; }
+  .tile img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    transition: transform 0.5s ease, border-color 0.3s ease;
+  }
+  .tile:hover img { transform: scale(1.02); border-color: rgba(255, 122, 217, 0.45); }
+  .tile figcaption {
+    padding: 0.55rem 0.2rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile img { transition: none; }
+  }
+</style>

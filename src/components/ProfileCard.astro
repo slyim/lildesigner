@@ -30,19 +30,39 @@ import { profile } from "../data/profile";
       <p class="bio">{profile.bio}</p>
     </div>
 
-    <!-- Stats -->
-    <div class="stats layer" data-depth="16">
-      {profile.stats.map((s) => s.label === "likes" ? (
-        <button class="stat stat-button" type="button" data-like aria-label="Like this page">
-          <span class="stat-value">{s.value}</span>
-          <span class="stat-label">{s.label}</span>
-        </button>
-      ) : (
-        <div class="stat">
-          <span class="stat-value" data-stat={s.label}>{s.value}</span>
-          <span class="stat-label">{s.label}</span>
-        </div>
-      ))}
+    <!-- Meta row: live views · location · occupation · like button -->
+    <div class="meta layer" data-depth="16">
+      <span class="meta-item" title="Page views">
+        <i class="ph-fill ph-eye"></i><span class="meta-value" data-stat="views">0</span>
+      </span>
+      <span class="meta-item" title="Location">
+        <i class="ph-fill ph-map-pin"></i><span class="meta-value">{profile.location}</span>
+      </span>
+      <span class="meta-item" title="Occupation">
+        <i class="ph-fill ph-briefcase"></i><span class="meta-value">{profile.occupation}</span>
+      </span>
+      <button class="meta-item meta-like" type="button" data-like aria-label="Like this page" title="Like this page">
+        <i class="ph-fill ph-heart"></i><span class="meta-value stat-value">0</span>
+      </button>
+    </div>
+
+    <!-- Live widgets: revealed by widgets.ts once their data arrives -->
+    <div class="widgets layer" data-depth="14">
+      <div class="widget presence" id="presenceBox" data-discord-id={profile.discordId} hidden>
+        <span class="presence-avatar" id="presenceAvatar" aria-hidden="true"></span>
+        <span class="presence-text">
+          <span class="presence-name" id="presenceName"></span>
+          <span class="presence-status" id="presenceStatus"></span>
+        </span>
+        <span class="presence-dot" id="presenceDot" aria-hidden="true"></span>
+      </div>
+      <div class="widget weather" id="weatherBox" data-weather-city={profile.weatherCity} hidden>
+        <span class="weather-icon" id="weatherIcon" aria-hidden="true"></span>
+        <span class="weather-text">
+          <span class="weather-city" id="weatherCity"></span>
+          <span class="weather-now" id="weatherNow"></span>
+        </span>
+      </div>
     </div>
 
     <!-- Socials -->
@@ -65,15 +85,15 @@ import { profile } from "../data/profile";
 
 <style>
   .profile-card {
-    width: min(400px, calc(100vw - 2.5rem));
-    padding: 0 0 1.25rem;
+    width: min(560px, calc(100vw - 2.5rem));
+    padding: 0 0 1.75rem;
   }
 
   /* ——— banner ——— */
   .banner {
     --z: 12px;
     position: relative;
-    height: 140px;
+    height: 200px;
     overflow: hidden;
     z-index: 1;
   }
@@ -92,14 +112,14 @@ import { profile } from "../data/profile";
     display: flex;
     justify-content: center;
     padding: 0 1.4rem;
-    margin-top: -46px;
+    margin-top: -62px;
     position: relative;
     z-index: 3;
   }
   .avatar-ring {
     position: relative;
-    width: 92px;
-    height: 92px;
+    width: 124px;
+    height: 124px;
     border-radius: 50%;
     padding: 3px;
     background: #ff5ac8;
@@ -120,22 +140,22 @@ import { profile } from "../data/profile";
   }
   .status {
     position: absolute;
-    right: 6px;
-    bottom: 6px;
-    width: 20px;
-    height: 20px;
+    right: 8px;
+    bottom: 8px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 3px solid var(--status-gap);
+    border: 4px solid var(--status-gap);
   }
   .status--online { background: #3bff9e; box-shadow: 0 0 12px rgba(59, 255, 158, 0.9); }
   .status--idle { background: #ffce3b; box-shadow: 0 0 12px rgba(255, 206, 59, 0.9); }
   .status--dnd { background: #ff5a5a; box-shadow: 0 0 12px rgba(255, 90, 90, 0.9); }
 
   /* ——— identity ——— */
-  .identity { --z: 22px; padding: 0.7rem 1.5rem 0; position: relative; z-index: 2; }
+  .identity { --z: 22px; padding: 1rem 2.2rem 0; position: relative; z-index: 2; }
   .name {
     margin: 0;
-    font-size: 1.65rem;
+    font-size: 2.3rem;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--text);
@@ -173,55 +193,113 @@ import { profile } from "../data/profile";
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }
-  .handle { margin: 0.1rem 0 0; font-size: 0.85rem; font-weight: 500; color: var(--handle); text-align: center; }
-  .bio { margin: 0.55rem 0 0; font-size: 0.92rem; font-weight: 300; line-height: 1.5; color: var(--text-body); }
+  .handle { margin: 0.15rem 0 0; font-size: 0.95rem; font-weight: 500; color: var(--handle); text-align: center; }
+  .bio { margin: 0.8rem 0 0; font-size: 1.02rem; font-weight: 300; line-height: 1.55; color: var(--text-body); text-align: center; }
 
-  /* ——— stats ——— */
-  .stats {
+  /* ——— meta row ——— */
+  .meta {
     --z: 16px;
     display: flex;
     justify-content: center;
-    gap: 1.4rem;
-    padding: 0.7rem 1.5rem 0;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    padding: 1rem 2rem 0;
     position: relative;
     z-index: 2;
   }
-  .stat {
-    display: flex;
-    flex-direction: column;
+  .meta-item {
+    display: inline-flex;
     align-items: center;
-    gap: 0;
+    gap: 0.4rem;
     padding: 0;
     background: none;
     border: none;
     box-shadow: none;
-    color: inherit;
+    color: var(--text-muted);
     font: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
   }
-  .stat-button { cursor: pointer; }
-  .stat-button:hover .stat-value,
-  .stat-button.liked .stat-value { color: var(--accent-soft); }
-  .stat.beaming { animation: text-pulse 2.2s ease-in-out infinite; }
-  .stat-value { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-  .stat-label { font-size: 0.62rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+  .meta-item i { font-size: 1rem; color: var(--accent-soft); }
+  .meta-value { white-space: nowrap; }
+  .meta-like { cursor: pointer; transition: color 0.2s ease; }
+  .meta-like:hover, .meta-like.liked { color: #ff5a8a; }
+  .meta-like:hover i, .meta-like.liked i { color: #ff5a8a; }
+  .meta-item.beaming { animation: text-pulse 2.2s ease-in-out infinite; }
+
+  /* ——— live widgets (presence / weather) ——— */
+  .widgets {
+    --z: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem 1.6rem 0;
+    position: relative;
+    z-index: 2;
+  }
+  .widgets:has(.widget:not([hidden])) { padding-bottom: 0.1rem; }
+  .widget {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-inset);
+  }
+  body.light .widget { background: rgba(255, 255, 255, 0.5); }
+  .widget[hidden] { display: none; }
+  .presence-avatar {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 90, 200, 0.25);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .presence-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .presence-text, .weather-text { min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .presence-name { font-size: 0.9rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .presence-status { font-size: 0.76rem; font-weight: 400; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .presence-dot {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #808080;
+  }
+  .presence-dot--online { background: #3bff9e; box-shadow: 0 0 10px rgba(59, 255, 158, 0.9); }
+  .presence-dot--idle { background: #ffce3b; box-shadow: 0 0 10px rgba(255, 206, 59, 0.9); }
+  .presence-dot--dnd { background: #ff5a5a; box-shadow: 0 0 10px rgba(255, 90, 90, 0.9); }
+  .weather-icon { flex-shrink: 0; font-size: 1.9rem; color: var(--accent-soft); display: grid; place-items: center; width: 46px; }
+  .weather-city { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .weather-now { font-size: 0.76rem; font-weight: 400; color: var(--text-muted); }
 
   /* ——— socials ——— */
   .links {
     --z: 26px;
     display: flex;
     justify-content: center;
-    gap: 0.7rem;
-    padding: 1rem 1.5rem 0;
+    gap: 0.9rem;
+    padding: 1.3rem 1.5rem 0;
     position: relative;
     z-index: 2;
   }
   .social {
     position: relative;
-    width: 46px;
-    height: 46px;
+    width: 56px;
+    height: 56px;
     display: grid;
     place-items: center;
-    font-size: 1.35rem;
+    font-size: 1.6rem;
     color: var(--accent-soft);
     text-decoration: none;
     transition: color 0.3s ease;
@@ -237,11 +315,11 @@ import { profile } from "../data/profile";
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.6rem;
-    padding: 1rem 1.5rem 0;
+    gap: 0.8rem;
+    padding: 1.3rem 1.5rem 0;
     position: relative;
     z-index: 2;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     font-weight: 400;
     color: var(--text-faint);
   }

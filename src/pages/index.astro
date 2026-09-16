@@ -1,8 +1,13 @@
 ---
 import ProfileCard from "../components/ProfileCard.astro";
+import AboutCard from "../components/AboutCard.astro";
+import CommentsCard from "../components/CommentsCard.astro";
+import CommentsModals from "../components/CommentsModals.astro";
+import GalleryCard from "../components/GalleryCard.astro";
 import LegalCard from "../components/LegalCard.astro";
 import { privacy, terms } from "../data/legal";
 import "../styles/glass.css";
+import "../styles/creation.css";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -16,16 +21,13 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     <meta name="generator" content={Astro.generator} />
     <title>liliana · zelvacard</title>
     <meta name="description" content="liliana's profile card" />
+    <meta name="theme-color" content="#0d0316" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lexend:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
     />
     <link
       rel="stylesheet"
@@ -35,27 +37,49 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     <link
       rel="stylesheet"
       type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
       href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css"
     />
   </head>
   <body>
+    <script is:inline>try{if(localStorage.getItem("zelva-theme")==="light")document.body.classList.add("light")}catch(e){}</script>
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
     <!-- liquid-glass backdrop -->
     <div class="bg" aria-hidden="true">
       <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" muted loop playsinline preload="auto" aria-hidden="true"></video>
-      <div class="bg-tint"></div>
-      <div class="bg-grain"></div>
     </div>
 
     <main>
       <div class="cards">
         <ProfileCard />
+        <AboutCard />
+        <CommentsCard />
+        <GalleryCard />
         <LegalCard id="view-privacy" doc={privacy} />
         <LegalCard id="view-terms" doc={terms} />
       </div>
     </main>
 
+    <CommentsModals />
+
     <audio id="bgMusic" preload="auto"></audio>
+
+    <!-- card-creation ritual: solid black lifts off the dark stage, then an
+         edge vignette hangs over it while the card assembles -->
+    <div class="creation" id="creation" aria-hidden="true">
+      <div class="creation-black"></div>
+      <div class="creation-vignette"></div>
+    </div>
+
+    <!-- bang effects: strobe + shockwave over the card as the blackhole ignites -->
+    <div class="shockwave" id="shockwave" aria-hidden="true"></div>
+    <div class="flash-white" id="flashWhite" aria-hidden="true"></div>
+
+    <div class="beat-vignette" aria-hidden="true"></div>
 
     <div class="float-pill music-pill" id="musicPill" role="group" aria-label="Music player">
       <span class="beam-border" aria-hidden="true"></span>
@@ -82,30 +106,65 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       <i class="ph-fill ph-sun" id="themeIcon"></i>
     </button>
 
+    <nav class="tabbar" id="tabbar" aria-label="Sections">
+      <button class="tab is-active" data-view="profile" type="button" aria-current="page">
+        <i class="ph-fill ph-user"></i><span>Profile</span>
+      </button>
+      <button class="tab" data-view="about" type="button">
+        <i class="ph-fill ph-article"></i><span>About Me</span>
+      </button>
+      <button class="tab" data-view="comments" type="button">
+        <i class="ph-fill ph-chats"></i><span>Comments</span>
+      </button>
+      <button class="tab" data-view="gallery" type="button">
+        <i class="ph-fill ph-image"></i><span>Gallery</span>
+      </button>
+    </nav>
+
     <!-- click-to-enter gate: blurs the whole screen until dismissed -->
-    <div class="enter" id="enter">
+    <div class="enter" id="enter" role="button" tabindex="0" aria-label="Click to enter. Warning: contains flashing visuals and motion.">
       <span class="enter-cta"><span aria-hidden="true">💗</span> click to enter <span aria-hidden="true">💗</span></span>
       <span class="enter-warn">⚠ contains flashing visuals &amp; motion</span>
     </div>
 
     <script>
-      import { createClient } from "@supabase/supabase-js";
       import { tracks } from "../data/music";
       import { initTiltCards } from "../scripts/tilt";
       import { initHoverGlow } from "../scripts/beam";
       import { initCardParticles } from "../scripts/particles";
       import { playEntrance } from "../scripts/entrance";
       import { playNameTyping } from "../scripts/typing";
+      import { playCreationSequence } from "../scripts/creation";
+      import { startBeatSync } from "../scripts/beatsync";
+      import { initComments } from "../scripts/comments";
+      import { initCustomCursor } from "../scripts/cursor";
+      import { initWidgets } from "../scripts/widgets";
+      import type { SupabaseClient } from "@supabase/supabase-js";
+      import type { ZelvaDB } from "../db/database";
 
       initTiltCards();
       initHoverGlow();
       initCardParticles();
+      initCustomCursor();
+      initWidgets();
 
       const analyticsConfig = document.getElementById("supabase-config") as HTMLElement;
       const analyticsUrl = analyticsConfig.dataset.url;
       const analyticsKey = analyticsConfig.dataset.key;
       if (analyticsUrl && analyticsKey) {
-        const supabase = createClient(analyticsUrl, analyticsKey);
+        // lazy: the SDK (~100KB) loads in the background, never blocks the entrance
+        import("@supabase/supabase-js").then(({ createClient }) => {
+          initAnalytics(createClient(analyticsUrl, analyticsKey));
+        }).catch((error) => {
+          console.warn("Could not load analytics", error);
+          initComments(null);
+        });
+      } else {
+        initComments(null);
+      }
+
+      function initAnalytics(supabase: SupabaseClient<ZelvaDB>) {
+        initComments(supabase);
         const likeButton = document.querySelector<HTMLElement>("[data-like]");
         const statElements = new Map(
           [...document.querySelectorAll<HTMLElement>("[data-stat]")].map((element) => [element.dataset.stat!, element]),
@@ -113,7 +172,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         if (likeButton) statElements.set("likes", likeButton.querySelector<HTMLElement>(".stat-value")!);
 
         const showStats = (stats: Record<string, number>) => {
-          for (const [name, element] of statElements) element.textContent = String(stats[name] ?? 0);
+          for (const [name, element] of statElements) {
+            element.textContent = Number(stats[name] ?? 0).toLocaleString("en-US");
+          }
         };
         const increment = async (statName: "views" | "likes" | "link_clicks") => {
           const { data, error } = await supabase.rpc("increment_stat", { stat_name: statName });
@@ -159,19 +220,25 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
       const bgVideo = document.getElementById("bgVideo") as HTMLVideoElement;
 
-      // background follows the music: dip out, swap video, fade back in
+      // background follows the music: dip out, swap video, fade back in.
+      // Generation token: rapid track skips abort stale swaps instead of
+      // flashing intermediate videos or stacking canplay listeners.
+      let bgToken = 0;
       function setBg(src: string) {
-        if (bgVideo.getAttribute("src") === src) return;
+        if (bgVideo.getAttribute("src") === src && !bgVideo.classList.contains("bg-fade")) return;
+        const token = ++bgToken;
         bgVideo.classList.add("bg-fade");
         setTimeout(() => {
+          if (token !== bgToken) return;
           bgVideo.setAttribute("src", src);
           if (!reduceMotion) bgVideo.play().catch(() => {});
           const show = () => {
+            if (token !== bgToken) return;
             bgVideo.classList.remove("bg-fade");
             bgVideo.removeEventListener("canplay", show);
           };
           bgVideo.addEventListener("canplay", show);
-          setTimeout(() => bgVideo.classList.remove("bg-fade"), 3000);
+          setTimeout(() => { if (token === bgToken) bgVideo.classList.remove("bg-fade"); }, 3000);
         }, 500);
       }
       const musicPill = document.getElementById("musicPill")!;
@@ -208,6 +275,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         userVol = Math.min(1, Math.max(0, Math.round(v * 100) / 100));
         try { localStorage.setItem("zelva-vol", String(userVol)); } catch { /* private mode */ }
         syncVolUI();
+        // apply at once (with the section fade) instead of waiting ~250ms for timeupdate
+        if (!audio.paused) audio.volume = fadedVolume();
       }
       syncVolUI();
       volSlider.addEventListener("input", () => setVol(Number(volSlider.value) / 100));
@@ -239,27 +308,46 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         }
       }
       window.addEventListener("resize", checkTrackOverflow);
+      // measure again once webfonts land — fallback metrics misjudge overflow
+      if (document.fonts?.ready) document.fonts.ready.then(() => checkTrackOverflow()).catch(() => {});
 
       function showTrack() {
         const t = tracks[trackIdx];
         setTrackLabel(`${t.title} — ${t.artist}`);
       }
 
-      function playTrack(i: number) {
-        // debounce: section-end and file-end can fire almost together
-        const now = Date.now();
-        if (now - lastAdvance < 800) return;
-        lastAdvance = now;
-        trackIdx = (i + tracks.length) % tracks.length;
+      // user volume shaped by the section fade in/out envelope
+      function fadedVolume() {
         const t = tracks[trackIdx];
+        const pos = audio.currentTime;
+        let v = userVol;
+        if (pos < t.start + FADE_IN) v *= Math.max(0, (pos - t.start) / FADE_IN);
+        if (pos > t.end - FADE_OUT) v *= Math.max(0, (t.end - pos) / FADE_OUT);
+        return Math.max(0, Math.min(userVol, v));
+      }
+
+      // one persistent seek listener: per-track listeners would pile up on
+      // slow networks and fire stale start times for the wrong track
+      let pendingSeek: number | null = null;
+      audio.addEventListener("loadedmetadata", () => {
+        if (pendingSeek === null) return;
+        try { audio.currentTime = pendingSeek; } catch { /* not ready; timeupdate clamps silently */ }
+        pendingSeek = null;
+      });
+
+      function playTrack(i: number, opts?: { force?: boolean }) {
+        // debounce: section-end and file-end can fire almost together.
+        // User input and error recovery bypass it — a broken first track
+        // erroring within 800ms of play must still skip, not wedge the player.
+        const now = Date.now();
+        if (!opts?.force && now - lastAdvance < 800) return;
+        lastAdvance = now;
+        trackIdx = ((i % tracks.length) + tracks.length) % tracks.length;
+        const t = tracks[trackIdx];
+        pendingSeek = t.start;
         audio.src = t.src;
         setBg(t.bg);
         showTrack();
-        const seek = () => {
-          audio.currentTime = t.start;
-          audio.removeEventListener("loadedmetadata", seek);
-        };
-        audio.addEventListener("loadedmetadata", seek);
         audio.play().then(() => { errorSkips = 0; setPlayingUI(true); }).catch(() => setPlayingUI(false));
       }
 
@@ -268,10 +356,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         const t = tracks[trackIdx];
         const pos = audio.currentTime;
         if (pos >= t.end) { playTrack(trackIdx + 1); return; }
-        let v = userVol;
-        if (pos < t.start + FADE_IN) v *= (pos - t.start) / FADE_IN;
-        if (pos > t.end - FADE_OUT) v *= Math.max(0, (t.end - pos) / FADE_OUT);
-        audio.volume = Math.max(0, Math.min(userVol, v));
+        audio.volume = fadedVolume();
       });
       audio.addEventListener("ended", () => playTrack(trackIdx + 1));
       audio.addEventListener("error", () => {
@@ -282,24 +367,76 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           setTrackLabel("no tracks found");
           setPlayingUI(false);
         } else {
-          playTrack(trackIdx + 1);
+          playTrack(trackIdx + 1, { force: true });
         }
       });
 
-      enter.addEventListener("click", () => {
-        if (entered) return;
-        entered = true;
-        document.body.classList.add("entered");
-        enter.classList.add("enter--hidden");
-        setTimeout(() => enter.remove(), 900);
-        playEntrance();
-        playNameTyping();
-        if (!reduceMotion) bgVideo.play().catch(() => {});
-        playTrack(0);
+      // keyboard users get through the gate too (it's a div, not a button)
+      enter.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); enter.click(); }
       });
 
+      enter.addEventListener("click", async () => {
+        if (entered) return;
+        entered = true;
+        enter.classList.add("enter--hidden");
+        setTimeout(() => enter.remove(), 900);
+        if (reduceMotion) {
+          document.body.classList.add("entered");
+          playEntrance();
+          playNameTyping();
+          playTrack(0, { force: true });
+          return;
+        }
+        // creation ritual: on a dark stage the actual card assembles itself
+        // in 3D while product.mp3 plays, then BANG — the blackhole ignites
+        // behind the card. The card never leaves the screen. Product keeps
+        // playing over the blackhole bg for a while afterwards.
+        // (The build IS the entrance, so no playEntrance.)
+        document.body.classList.add("creating");
+        try {
+          await playCreationSequence({ getVolume: () => userVol, src: tracks[0].src, bgSrc: tracks[0].bg, start: tracks[0].start });
+        } catch (error) {
+          console.warn("Creation sequence failed, entering directly", error);
+          document.body.classList.remove("creating", "no-glass");
+          document.body.classList.add("entered");
+          playEntrance();
+        }
+        // keepInitial: the name is already built — never wipe it post-bang
+        playNameTyping(document, true);
+        bgVideo.play().catch(() => {});
+        // product is already playing from the build — hand it to the playlist
+        // instead of restarting it (unless it errored and skipped ahead)
+        if (!audio.src) {
+          playTrack(0, { force: true });
+        } else if (isCreationAudio()) {
+          trackIdx = 0;
+          pendingSeek = null; // creation already positioned it; ignore stale seeks
+          setBg(tracks[0].bg);
+          showTrack();
+          setPlayingUI(!audio.paused);
+        } else {
+          setBg(tracks[trackIdx].bg);
+          showTrack();
+          setPlayingUI(!audio.paused);
+        }
+        startBeatSync(audio);
+      });
+
+      // still on the creation track? compare URL pathnames — raw `src` strings
+      // carry encoding (spaces, commas) that breaks substring matching
+      function isCreationAudio() {
+        const current = audio.currentSrc || audio.src;
+        if (!current) return false;
+        try {
+          return new URL(current).pathname.endsWith(new URL(tracks[0].src, location.origin).pathname);
+        } catch {
+          return current.includes(tracks[0].src);
+        }
+      }
+
       musicToggle.addEventListener("click", () => {
-        if (!audio.src) { playTrack(trackIdx); return; }
+        if (!audio.src) { playTrack(trackIdx, { force: true }); return; }
         if (audio.paused) {
           audio.play().then(() => setPlayingUI(true)).catch(() => {});
         } else {
@@ -307,13 +444,64 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           setPlayingUI(false);
         }
       });
-      prevBtn.addEventListener("click", () => playTrack(trackIdx - 1));
-      nextBtn.addEventListener("click", () => playTrack(trackIdx + 1));
+      prevBtn.addEventListener("click", () => playTrack(trackIdx - 1, { force: true }));
+      nextBtn.addEventListener("click", () => playTrack(trackIdx + 1, { force: true }));
 
-      // card views: profile <-> privacy / terms
-      const views = ["profile", "privacy", "terms"].map((n) => document.getElementById(`view-${n}`)!);
+      // card views: tabs switch the four sections, legal views stand apart
+      const views = ["profile", "about", "comments", "gallery", "privacy", "terms"].map((n) => document.getElementById(`view-${n}`)!);
+      const tabs = [...document.querySelectorAll<HTMLButtonElement>(".tab")];
+      // generation token: a switch mid-morph aborts the stale hide so the
+      // re-entered view can't be buried by its own leave timeout
+      let viewToken = 0;
       function showView(name: string) {
-        views.forEach((v) => v.classList.toggle("view-hidden", v.id !== `view-${name}`));
+        const token = ++viewToken;
+        const reduceMotionSwap = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        views.forEach((v) => {
+          if (v.id === `view-${name}`) {
+            // a mid-leave re-entry must restart the enter — not early-return,
+            // or the aborted leave timeout strands it invisible at opacity 0
+            const isLive = !v.classList.contains("view-hidden") && !v.classList.contains("view-prewarm") && !v.classList.contains("view-leave");
+            if (isLive) return;
+            if (reduceMotionSwap) {
+              v.classList.remove("view-hidden", "view-leave", "view-enter", "view-prewarm");
+            } else {
+              v.classList.remove("view-hidden", "view-leave", "view-enter");
+              // prewarm: visible to the renderer (so the glass backdrop-filter
+              // rasterizes) but transparent for 2 frames, then the enter fade
+              // starts with the blur already live — else the first frames paint
+              // semi-transparent with no blur. Same token guard as the leave.
+              v.classList.add("view-prewarm");
+              requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (token !== viewToken) return;
+                v.classList.remove("view-prewarm");
+                v.classList.add("view-enter");
+              }));
+            }
+          } else if (!v.classList.contains("view-hidden")) {
+            if (reduceMotionSwap) {
+              v.classList.remove("view-prewarm");
+              v.classList.add("view-hidden");
+            } else if (v.classList.contains("view-prewarm")) {
+              // never became visible — park it, no leave animation to flash
+              v.classList.remove("view-enter", "view-prewarm");
+              v.classList.add("view-hidden");
+            } else {
+              v.classList.remove("view-enter", "view-prewarm");
+              v.classList.add("view-leave");
+              window.setTimeout(() => {
+                if (token !== viewToken) return;
+                v.classList.add("view-hidden");
+                v.classList.remove("view-leave");
+              }, 200);
+            }
+          }
+        });
+        tabs.forEach((t) => {
+          const active = t.dataset.view === name;
+          t.classList.toggle("is-active", active);
+          if (active) t.setAttribute("aria-current", "page");
+          else t.removeAttribute("aria-current");
+        });
       }
       document.querySelectorAll("[data-view]").forEach((el) => {
         el.addEventListener("click", () => showView((el as HTMLElement).dataset.view!));
@@ -352,7 +540,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         --glass: rgba(255, 255, 255, 0.06);
         --glass-border: rgba(255, 255, 255, 0.12);
         --glass-inset: rgba(255, 255, 255, 0.14);
-        --card-base: rgba(26, 8, 39, 0.42);
+        --card-base: rgba(26, 8, 39, 0.36);
         --card-sheen-a: rgba(255, 255, 255, 0.14);
         --card-sheen-b: rgba(255, 255, 255, 0.03);
         --card-border: rgba(255, 255, 255, 0.16);
@@ -381,7 +569,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         --glass: rgba(255, 255, 255, 0.55);
         --glass-border: rgba(184, 54, 146, 0.18);
         --glass-inset: rgba(255, 255, 255, 0.7);
-        --card-base: rgba(255, 244, 250, 0.55);
+        --card-base: rgba(255, 244, 250, 0.5);
         --card-sheen-a: rgba(255, 255, 255, 0.7);
         --card-sheen-b: rgba(255, 255, 255, 0.25);
         --card-border: rgba(255, 255, 255, 0.8);
@@ -406,28 +594,19 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
 
       .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--page-bg); }
+      /* background footage plays raw — zero effects, so the creation flash
+         and the backdrop render identically with no brightness pop */
       .bg-img {
         position: absolute;
         inset: -8%;
         width: 116%;
         height: 116%;
         object-fit: cover;
-        opacity: 0.55;
-        filter: saturate(1.4);
+        opacity: 1;
         animation: bg-drift 26s ease-in-out infinite alternate;
         transition: opacity 0.5s ease, filter 0.9s ease;
       }
       .bg-img.bg-fade { opacity: 0; }
-      .bg-tint {
-        position: absolute;
-        inset: 0;
-        background: rgba(13, 3, 22, 0.25);
-      }
-      .bg-grain {
-        position: absolute; inset: 0;
-        opacity: 0.5;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E");
-      }
       @keyframes bg-drift {
         from { transform: scale(1.02) translate(-1.5%, -1%); }
         to { transform: scale(1.1) translate(1.5%, 1.5%); }
@@ -440,19 +619,25 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        /* safe: a card taller than the viewport aligns to the top instead of
+           clipping its head where scrolling can't reach */
+        justify-content: safe center;
         gap: 1.4rem;
-        padding: 3rem 1rem;
+        padding: 6.5rem 1rem 3rem;
+      }
+      @media (max-width: 1020px) {
+        main { padding-top: 9rem; }
       }
       /* blurred behind the gate, settles into focus once it lifts */
       main { transition: transform 0.9s ease, filter 0.9s ease; }
       body:not(.entered) main { transform: scale(1.035); filter: blur(14px); }
-      body:not(.entered) .bg-img { filter: blur(40px) saturate(1.4); }
+      body:not(.entered) .bg-img { filter: blur(40px); }
 
       .cards {
         display: grid;
         justify-items: center;
         width: 100%;
+        perspective: 1400px;
       }
       .cards .scene {
         grid-area: 1 / 1;
@@ -463,6 +648,30 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         transform: scale(0.96);
         visibility: hidden;
         pointer-events: none;
+      }
+      /* liquid-glass view morph: the outgoing card dips out fast, the
+         incoming one condenses in with a spring. Driven by showView(), which
+         staggers the classes — see the token guard there. Opacity + transform
+         only: .scene is the glass card's ancestor, and any filter on it knocks
+         the card's backdrop blur out for the whole transition. */
+      .cards .scene.view-leave { animation: view-out 0.2s ease-in forwards; }
+      .cards .scene.view-enter { animation: view-in 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
+      /* blur prewarm: visible to the renderer so the glass backdrop-filter
+         rasterizes, but transparent with no transition so nothing paints.
+         showView() holds this for 2 frames before the enter fade. */
+      .cards .scene.view-prewarm {
+        opacity: 0;
+        transition: none;
+        pointer-events: none;
+      }
+      @keyframes view-out {
+        to { opacity: 0; transform: scale(0.93) translateY(10px); visibility: hidden; }
+      }
+      @keyframes view-in {
+        from { opacity: 0; transform: scale(0.94) translateY(-14px); }
+        /* motion leads, opacity follows: the glide starts instantly while the
+           fade holds just long enough for slow GPUs to warm the blur */
+        18% { opacity: 0; }
       }
 
       /* ——— enter gate ——— */
@@ -532,6 +741,78 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       .music-pill { left: 1.1rem; gap: 0.3rem; cursor: default; }
       .theme-toggle { right: 1.1rem; }
       body.entered .float-pill { opacity: 1; transform: none; pointer-events: auto; }
+
+      /* ——— section tab bar ——— */
+      .tabbar {
+        position: fixed;
+        top: 1.1rem;
+        left: 50%;
+        z-index: 40;
+        display: flex;
+        gap: 0.6rem;
+        opacity: 0;
+        transform: translate(-50%, -12px);
+        pointer-events: none;
+        transition: opacity 0.6s ease 0.45s, transform 0.6s ease 0.45s;
+      }
+      body.entered .tabbar { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+      /* glass top-light shared by pills + tabs (paints over their static
+         content like real glass; pointer-events none so controls stay live) */
+      .float-pill::after, .tab::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 52%);
+        pointer-events: none;
+      }
+      .tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1rem;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-body);
+        cursor: pointer;
+        border-radius: var(--radius);
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+          var(--pill-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(16px) saturate(1.4);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        box-shadow: var(--shadow-drop), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+      }
+      .tab i { font-size: 1.05rem; color: var(--accent-soft); transition: color 0.2s ease; }
+      .tab:hover { color: var(--pill-hover-color); border-color: rgba(255, 122, 217, 0.45); }
+      .tab:active { transform: scale(0.95); }
+      .tab.is-active {
+        color: #fff;
+        transform: scale(1.04);
+        border-color: rgba(255, 122, 217, 0.6);
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+          rgba(255, 90, 200, 0.22);
+        box-shadow: var(--shadow-drop), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+      .tab.is-active i { color: #fff; }
+      body.light .tab.is-active { color: #a02080; }
+      body.light .tab.is-active i { color: #d633a8; }
+      .tab.beaming { animation: icon-pulse 2.2s ease-in-out infinite; }
+      /* below ~1020px the corner pills would overlap centered tabs — tabs
+         drop to their own row under them */
+      @media (max-width: 1020px) {
+        .tabbar { top: 4.9rem; }
+      }
+      @media (max-width: 480px) {
+        .tabbar { gap: 0.4rem; top: 4.6rem; max-width: calc(100vw - 1rem); }
+        .tab { padding: 0.55rem 0.7rem; font-size: 0.74rem; gap: 0.35rem; }
+        .tab i { font-size: 0.95rem; }
+      }
       .float-pill.beaming { border-color: transparent; }
       /* keep the pill's beam glowing while a child control (play/skip/volume) is hovered */
       .float-pill:has(.pill-btn.beaming, .vol-slider.beaming) { border-color: transparent; }
@@ -664,7 +945,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
 
       @media (prefers-reduced-motion: reduce) {
         .bg-img, .enter-cta, .eq span, .track-name-text { animation: none !important; }
-        main, .enter, .float-pill { transition: none; }
+        .cards .scene.view-leave, .cards .scene.view-enter { animation: none; }
+        main, .enter, .float-pill, .tabbar, .tab, .cards .scene { transition: none; }
       }
     </style>
   </body>

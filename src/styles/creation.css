@@ -1,0 +1,118 @@
+/* Card-creation ritual: dark construction stage, brick-by-brick wall assembly,
+   blackhole flash, beat sync. Imported once per page.
+   Driven by src/scripts/creation.ts + beatsync.ts. */
+
+/* ——— dark stage: complete darkness while the real card assembles ——— */
+body.creating { background: #000; }
+body.creating .bg { opacity: 0; }
+/* freeze the hidden backdrop — a fullscreen blurred video costs frames during the build */
+body.creating .bg-img { animation: none; }
+/* Crisp and centered during the build (beats the blurred pre-enter state).
+   Transition off: the full-screen blur animation stutters against the
+   assembly tweens, and the snap hides behind the fading gate anyway. */
+body.creating:not(.entered) main { transform: none; filter: none; opacity: 1; transition: none; }
+/* Kill the glass blur while components fly: re-rasterizing a fullscreen
+   backdrop-filter every frame is the big stutter. On the black stage the
+   glass has nothing to refract anyway — restored under cover of the flash. */
+body.no-glass #view-profile .profile-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* …and park the in-card particle canvas for the same reason */
+body.creating .card-particles { display: none; }
+/* build angle: the card assembles tilted in 3D (must match BUILD_TILT in
+   creation.ts — the bang swing starts from this exact transform) */
+body.creating #view-profile {
+  transform: rotateY(-28deg) rotateX(6deg) translateX(40px) scale(0.94);
+}
+
+/* edge vignette floats over the dark stage */
+.creation {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s;
+}
+body.creating .creation { opacity: 1; visibility: visible; }
+/* solid black: the stage starts in complete darkness, then this lifts over
+   ~1.5s as the first piece lands (see creation--lifted in creation.ts) */
+.creation-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+body.creating .creation-black { opacity: 1; }
+body.creating .creation--lifted .creation-black { opacity: 0; }
+.creation-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+/* ——— bang effects: strobe + shockwave over everything ——— */
+.flash-white {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+.shockwave {
+  position: fixed;
+  z-index: 75;
+  left: 50%;
+  top: 50%;
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 190, 235, 0.95);
+  box-shadow:
+    0 0 50px rgba(255, 90, 200, 0.9),
+    inset 0 0 50px rgba(255, 90, 200, 0.6);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ——— beat sync: everything pulses off --beat-pulse (0..1, decays per frame) ——— */
+.beat-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(255, 60, 180, 0.32) 100%);
+}
+body.beatsync .beat-vignette { opacity: calc(var(--beat-pulse, 0) * 0.95); }
+
+/* standalone `scale` composes with (never fights) the tilt `transform` */
+body.beatsync #view-profile .profile-card {
+  scale: calc(1 + var(--beat-pulse, 0) * 0.028);
+}
+body.beatsync #view-profile .avatar-ring {
+  scale: calc(1 + var(--beat-pulse, 0) * 0.07);
+}
+body.beatsync #view-profile .name {
+  filter: brightness(calc(1 + var(--beat-pulse, 0) * 0.4));
+}
+/* drop the slow filter transition so the bg punches on the beat (brightness only — footage stays raw) */
+body.beatsync .bg-img {
+  transition: opacity 0.5s ease;
+  filter: brightness(calc(1 + var(--beat-pulse, 0) * 0.22));
+}
+/* EQ bars are driven straight from the analyser, not the CSS bounce */
+body.beatsync .eq span { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .creation,
+  .flash-white,
+  .shockwave,
+  .beat-vignette { display: none !important; }
+}

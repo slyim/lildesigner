@@ -64,7 +64,7 @@ function scheduleRewrite(el: HTMLElement, full: string) {
   }, delay);
 }
 
-export function playNameTyping(root: ParentNode = document) {
+export function playNameTyping(root: ParentNode = document, keepInitial = false) {
   if (played) return;
   played = true;
   const el = root.querySelector<HTMLElement>("[data-typing-text]");
@@ -72,6 +72,12 @@ export function playNameTyping(root: ParentNode = document) {
   const full = el.textContent ?? "";
   if (!full) return;
   if (prefersReducedMotion()) return;
+  // after the creation build the name is already assembled — wiping it here
+  // would read as the card restarting itself, so only schedule rewrites
+  if (keepInitial) {
+    scheduleRewrite(el, full);
+    return;
+  }
   el.textContent = "";
   typeName(el, full, () => scheduleRewrite(el, full));
 }

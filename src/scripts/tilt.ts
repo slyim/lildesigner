@@ -42,5 +42,8 @@ function initOne(card: HTMLElement) {
 }
 
 export function initTiltCards(root: ParentNode = document) {
+  // touch screens have no hover: without this, scrolling (pointermove)
+  // tilts the cards and a missing pointerleave leaves them stuck tilted
+  if (!window.matchMedia("(hover: hover)").matches) return;
   root.querySelectorAll<HTMLElement>("[data-tilt]").forEach(initOne);
 }

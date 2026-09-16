@@ -37,6 +37,10 @@ export function initCardParticles() {
     canvas.remove();
     return;
   }
+  // const aliases: narrowing on `card`/`ctx` doesn't survive into the
+  // rAF + observer closures below
+  const el = card;
+  const g = ctx;
 
   let w = 0;
   let h = 0;
@@ -63,13 +67,13 @@ export function initCardParticles() {
   }
 
   function resize() {
-    const rect = card.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     w = Math.max(1, Math.round(rect.width));
     h = Math.max(1, Math.round(rect.height));
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
     seed();
   }
 
@@ -78,7 +82,7 @@ export function initCardParticles() {
     if (!running) return;
     const dt = Math.min(0.05, (t - last) / 1000 || 0.016);
     last = t;
-    ctx.clearRect(0, 0, w, h);
+    g.clearRect(0, 0, w, h);
     for (const d of dots) {
       d.phase += dt * d.speed;
       d.x += (d.vx + Math.sin(d.phase) * 6) * dt;
@@ -90,12 +94,12 @@ export function initCardParticles() {
       if (d.x < -6) d.x = w + 6;
       else if (d.x > w + 6) d.x = -6;
       const tw = d.alpha * (0.6 + 0.4 * Math.sin(d.phase * 1.7));
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      ctx.fillStyle = d.pink
+      g.beginPath();
+      g.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      g.fillStyle = d.pink
         ? `rgba(255, 170, 225, ${tw.toFixed(3)})`
         : `rgba(255, 255, 255, ${tw.toFixed(3)})`;
-      ctx.fill();
+      g.fill();
     }
     raf = requestAnimationFrame(frame);
   }

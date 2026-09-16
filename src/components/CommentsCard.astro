@@ -1,0 +1,219 @@
+---
+// Comments tab — guns.lol-style profile comments, driven by src/scripts/comments.ts.
+// Preview grid on the card; the popups live in CommentsModals (body level).
+// All user text renders via textContent (never HTML), so posts can't inject markup.
+---
+
+<div class="scene view-hidden" id="view-comments">
+  <article class="glass-card comments-card" data-tilt>
+    <div class="card-glare" data-glare></div>
+    <span class="beam-border" aria-hidden="true"></span>
+
+    <header class="comments-head layer">
+      <h2>Profile Comments <span class="comments-count" id="commentsCount"></span></h2>
+      <div class="comments-actions" id="commentsActions">
+        <button class="comments-btn" id="commentsViewAll" type="button" hidden>View all comments</button>
+        <button class="comments-btn" id="commentsWrite" type="button">
+          <span class="write-icon" aria-hidden="true"><i class="ph ph-chat-circle"></i><i class="ph-bold ph-plus"></i></span>Write Comment
+        </button>
+      </div>
+    </header>
+
+    <div class="comments-list layer" id="commentsList" role="log" aria-live="polite" aria-label="Profile comments">
+      <p class="comments-status" id="commentsStatus">loading…</p>
+    </div>
+  </article>
+</div>
+
+<style>
+  .comments-card {
+    width: min(880px, calc(100vw - 2.5rem));
+    padding: 1.6rem 1.6rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: min(78vh, 700px);
+  }
+  .comments-head {
+    --z: 20px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0 0.2rem;
+  }
+  .comments-head h2 {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .comments-count { color: var(--text); font-weight: 800; }
+  .comments-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .comments-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.7rem 1.1rem;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+  body.light .comments-btn { background: rgba(255, 255, 255, 0.55); color: var(--text); border-color: var(--glass-border); }
+  .comments-btn:hover { border-color: rgba(255, 255, 255, 0.35); background: rgba(0, 0, 0, 0.45); }
+  body.light .comments-btn:hover { background: rgba(255, 255, 255, 0.75); }
+  /* bubble-plus glyph: phosphor has no chat-plus, so a small bold plus
+     badges the outline bubble's bottom-right like the reference */
+  .write-icon { position: relative; display: inline-flex; font-size: 1.15rem; line-height: 1; }
+  .write-icon .ph-plus {
+    position: absolute;
+    right: -0.32em;
+    bottom: -0.32em;
+    font-size: 0.62em;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 50%;
+  }
+  body.light .write-icon .ph-plus { background: rgba(255, 255, 255, 0.7); }
+  .comments-list {
+    --z: 12px;
+    position: relative;
+    z-index: 2;
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    align-content: start;
+    min-height: 140px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 122, 217, 0.5) transparent;
+    padding: 0.1rem;
+  }
+  .comments-list::-webkit-scrollbar { width: 5px; }
+  .comments-list::-webkit-scrollbar-thumb { background: rgba(255, 122, 217, 0.5); border-radius: 3px; }
+  @media (max-width: 560px) {
+    .comments-list { grid-template-columns: 1fr; }
+  }
+  .comments-status {
+    grid-column: 1 / -1;
+    margin: auto;
+    font-size: 0.82rem;
+    color: var(--text-faint);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .comments-btn { transition: none; }
+  }
+</style>
+
+<style is:global>
+  /* global: comment items are created by comments.ts, and Astro's scoped
+     styles never reach JS-created elements (no scope attributes) */
+  .comment {
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    padding: 0.8rem 0.9rem;
+    box-shadow: inset 0 1px 0 var(--glass-inset);
+  }
+  body.light .comment { background: rgba(255, 255, 255, 0.5); border-color: var(--glass-border); }
+  .comment-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+  .comment-avatar {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+  .comment-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    line-height: 1.25;
+  }
+  .comment-name {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .comment-time { font-size: 0.72rem; font-weight: 400; color: var(--text-faint); white-space: nowrap; }
+  .comment-body {
+    margin: 0.4rem 0 0;
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.55;
+    color: var(--text-body);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+  .comment-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.1rem;
+    margin-left: auto;
+  }
+  .comment-action {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.35rem;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s ease;
+  }
+  .comment-action i { font-size: 1.05rem; }
+  .comment-action:hover { color: var(--text); }
+  .comment-action.liked { color: #ff5a8a; }
+  .comment-replies { margin-top: 0.5rem; padding-left: 0.7rem; border-left: 2px solid var(--glass-border); }
+  .comment-replies[hidden] { display: none; }
+  .comment-reply { padding: 0.4rem 0; }
+  .comment-reply + .comment-reply { border-top: 1px solid var(--glass-border); }
+  .comment-replies-toggle {
+    background: none;
+    border: none;
+    padding: 0.3rem 0 0;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .comment-replies-toggle:hover { color: var(--accent-soft); }
+  .comment-replies-toggle i { font-size: 0.8rem; transition: transform 0.2s ease; }
+  .comment-replies-toggle[aria-expanded="true"] i { transform: rotate(180deg); }
+</style>

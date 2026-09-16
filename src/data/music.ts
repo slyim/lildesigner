@@ -1,5 +1,7 @@
 // Playlist — only the [start, end] section of each track plays.
 // Add more by dropping an .mp3 in public/music/ and appending a row here.
+// Files are pre-trimmed to their section (+2s padding each side) so the
+// full songs never download; start/end below are relative to the trimmed file.
 export interface Track {
   title: string;
   artist: string;
@@ -13,8 +15,10 @@ export interface Track {
 }
 
 export const tracks: Track[] = [
-  { title: "Suzume", artist: "RADWIMPS feat. Toaka", src: "/music/suzume.mp3", start: 37, end: 67, bg: "/bg.mp4" },
-  { title: "this is what autumn feels like", artist: "JVKE", src: "/music/autumn.mp3", start: 55, end: 85, bg: "/bg-city.mp4" },
-  { title: "lovely", artist: "Billie Eilish, Khalid", src: "/music/Billie Ellish, Khaild- Lovely.mp3", start: 130, end: 160, bg: "/bg-pink.mp4" },
-  { title: "Love Story (Version Orchestrale)", artist: "M, Indila", src: "/music/M_-_Indila_-Love_Story_Version_Orchestrale_(mp3.pm)_bass_boosted.mp3", start: 245, end: 275, bg: "/bg-space.mp4" },
+  // creation theme: already playing when the card is revealed, keeps going a while
+  { title: "product", artist: "zelvacard", src: "/music/product.mp3", start: 0, end: 34, bg: "/blackhole.mp4" },
+  { title: "Suzume", artist: "RADWIMPS feat. Toaka", src: "/music/suzume.mp3", start: 2, end: 32, bg: "/bg.mp4" },
+  { title: "this is what autumn feels like", artist: "JVKE", src: "/music/autumn.mp3", start: 2, end: 32, bg: "/bg-city.mp4" },
+  { title: "lovely", artist: "Billie Eilish, Khalid", src: "/music/lovely.mp3", start: 2, end: 32, bg: "/bg-pink.mp4" },
+  { title: "Love Story (Version Orchestrale)", artist: "M, Indila", src: "/music/love-story.mp3", start: 2, end: 32, bg: "/bg-space.mp4" },
 ];
