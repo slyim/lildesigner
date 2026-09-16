@@ -1,17 +1,593 @@
 ---
-
+import ProfileCard from "../components/ProfileCard.astro";
+import LegalCard from "../components/LegalCard.astro";
+import { privacy, terms } from "../data/legal";
+import "../styles/glass.css";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>liliana · zelvacard</title>
+    <meta name="description" content="liliana's profile card" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lexend:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css"
+    />
+  </head>
+  <body>
+    <!-- liquid-glass backdrop -->
+    <div class="bg" aria-hidden="true">
+      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" autoplay muted loop playsinline aria-hidden="true"></video>
+      <div class="bg-tint"></div>
+      <div class="blob blob-a"></div>
+      <div class="blob blob-b"></div>
+      <div class="bg-grain"></div>
+    </div>
+
+    <main>
+      <div class="cards">
+        <ProfileCard />
+        <LegalCard id="view-privacy" doc={privacy} />
+        <LegalCard id="view-terms" doc={terms} />
+      </div>
+    </main>
+
+    <audio id="bgMusic" preload="auto"></audio>
+
+    <div class="float-pill music-pill" id="musicPill" role="group" aria-label="Music player">
+      <span class="beam-border" aria-hidden="true"></span>
+      <button class="pill-btn" id="prevBtn" type="button" title="Previous track">
+        <i class="ph-fill ph-skip-back"></i>
+      </button>
+      <button class="pill-btn play-btn" id="musicToggle" type="button" title="Play music">
+        <i class="ph-fill ph-speaker-high" id="musicIcon"></i>
+        <span class="eq eq--paused" id="musicEq" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <button class="pill-btn" id="nextBtn" type="button" title="Next track">
+        <i class="ph-fill ph-skip-forward"></i>
+      </button>
+      <span class="vol-wrap">
+        <span class="vol-track" aria-hidden="true"></span>
+        <span class="vol-fill" id="volFill" aria-hidden="true"></span>
+        <input class="vol-slider" id="volSlider" type="range" min="0" max="100" value="50" title="Volume" aria-label="Volume" />
+      </span>
+      <span class="track-name" id="trackName" title=""></span>
+    </div>
+
+    <button class="float-pill theme-toggle" id="themeToggle" type="button" title="Light mode">
+      <span class="beam-border" aria-hidden="true"></span>
+      <i class="ph-fill ph-sun" id="themeIcon"></i>
+    </button>
+
+    <!-- click-to-enter gate: blurs the whole screen until dismissed -->
+    <div class="enter" id="enter">
+      <span class="enter-cta"><span aria-hidden="true">💗</span> click to enter <span aria-hidden="true">💗</span></span>
+      <span class="enter-warn">⚠ contains flashing visuals &amp; motion</span>
+    </div>
+
+    <script>
+      import { tracks } from "../data/music";
+      import { initTiltCards } from "../scripts/tilt";
+      import { initHoverGlow } from "../scripts/beam";
+
+      initTiltCards();
+      initHoverGlow();
+
+      // still background for reduced-motion users
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        (document.querySelector(".bg-img") as HTMLVideoElement | null)?.pause();
+      }
+
+      const enter = document.getElementById("enter")!;
+      const audio = document.getElementById("bgMusic") as HTMLAudioElement;
+      const bgVideo = document.getElementById("bgVideo") as HTMLVideoElement;
+
+      // background follows the music: dip out, swap video, fade back in
+      function setBg(src: string) {
+        if (bgVideo.getAttribute("src") === src) return;
+        bgVideo.classList.add("bg-fade");
+        setTimeout(() => {
+          bgVideo.setAttribute("src", src);
+          bgVideo.play().catch(() => {});
+          const show = () => {
+            bgVideo.classList.remove("bg-fade");
+            bgVideo.removeEventListener("canplay", show);
+          };
+          bgVideo.addEventListener("canplay", show);
+          setTimeout(() => bgVideo.classList.remove("bg-fade"), 3000);
+        }, 500);
+      }
+      const musicPill = document.getElementById("musicPill")!;
+      const musicToggle = document.getElementById("musicToggle")!;
+      const musicIcon = document.getElementById("musicIcon")!;
+      const musicEq = document.getElementById("musicEq")!;
+      const trackName = document.getElementById("trackName")!;
+      const prevBtn = document.getElementById("prevBtn")!;
+      const nextBtn = document.getElementById("nextBtn")!;
+      const volSlider = document.getElementById("volSlider") as HTMLInputElement;
+      const volFill = document.getElementById("volFill")!;
+      let entered = false;
+      let trackIdx = 0;
+      let errorSkips = 0;
+      let lastAdvance = 0;
+      let userVol = 0.5;
+      try {
+        const saved = parseFloat(localStorage.getItem("zelva-vol") ?? "");
+        if (!Number.isNaN(saved)) userVol = Math.min(1, Math.max(0, saved));
+      } catch { /* private mode */ }
+
+      const FADE_IN = 1.0;
+      const FADE_OUT = 2.0;
+      audio.volume = 0;
+
+      function syncVolUI() {
+        const pct = Math.round(userVol * 100);
+        volSlider.value = String(pct);
+        volFill.style.width = `${pct}%`;
+        volSlider.title = `Volume (${pct}%)`;
+      }
+      function setVol(v: number) {
+        userVol = Math.min(1, Math.max(0, Math.round(v * 100) / 100));
+        try { localStorage.setItem("zelva-vol", String(userVol)); } catch { /* private mode */ }
+        syncVolUI();
+      }
+      syncVolUI();
+      volSlider.addEventListener("input", () => setVol(Number(volSlider.value) / 100));
+
+      function setPlayingUI(playing: boolean) {
+        musicIcon.className = playing ? "ph-fill ph-speaker-high" : "ph-fill ph-speaker-slash";
+        musicEq.classList.toggle("eq--paused", !playing);
+        musicToggle.title = playing ? "Mute music" : "Play music";
+      }
+
+      function showTrack() {
+        const t = tracks[trackIdx];
+        const label = `${t.title} — ${t.artist}`;
+        trackName.textContent = label;
+        trackName.title = label;
+      }
+
+      function playTrack(i: number) {
+        // debounce: section-end and file-end can fire almost together
+        const now = Date.now();
+        if (now - lastAdvance < 800) return;
+        lastAdvance = now;
+        trackIdx = (i + tracks.length) % tracks.length;
+        const t = tracks[trackIdx];
+        audio.src = t.src;
+        setBg(t.bg);
+        showTrack();
+        const seek = () => {
+          audio.currentTime = t.start;
+          audio.removeEventListener("loadedmetadata", seek);
+        };
+        audio.addEventListener("loadedmetadata", seek);
+        audio.play().then(() => { errorSkips = 0; setPlayingUI(true); }).catch(() => setPlayingUI(false));
+      }
+
+      // section playback: advance at [end], with fade in/out around the section
+      audio.addEventListener("timeupdate", () => {
+        const t = tracks[trackIdx];
+        const pos = audio.currentTime;
+        if (pos >= t.end) { playTrack(trackIdx + 1); return; }
+        let v = userVol;
+        if (pos < t.start + FADE_IN) v *= (pos - t.start) / FADE_IN;
+        if (pos > t.end - FADE_OUT) v *= Math.max(0, (t.end - pos) / FADE_OUT);
+        audio.volume = Math.max(0, Math.min(userVol, v));
+      });
+      audio.addEventListener("ended", () => playTrack(trackIdx + 1));
+      audio.addEventListener("error", () => {
+        // skip broken files; give up if the whole playlist fails
+        errorSkips++;
+        if (errorSkips >= tracks.length) {
+          musicPill.classList.add("pill-empty");
+          trackName.textContent = "no tracks found";
+          setPlayingUI(false);
+        } else {
+          playTrack(trackIdx + 1);
+        }
+      });
+
+      enter.addEventListener("click", () => {
+        if (entered) return;
+        entered = true;
+        document.body.classList.add("entered");
+        enter.classList.add("enter--hidden");
+        setTimeout(() => enter.remove(), 900);
+        playTrack(0);
+      });
+
+      musicToggle.addEventListener("click", () => {
+        if (!audio.src) { playTrack(trackIdx); return; }
+        if (audio.paused) {
+          audio.play().then(() => setPlayingUI(true)).catch(() => {});
+        } else {
+          audio.pause();
+          setPlayingUI(false);
+        }
+      });
+      prevBtn.addEventListener("click", () => playTrack(trackIdx - 1));
+      nextBtn.addEventListener("click", () => playTrack(trackIdx + 1));
+
+      // card views: profile <-> privacy / terms
+      const views = ["profile", "privacy", "terms"].map((n) => document.getElementById(`view-${n}`)!);
+      function showView(name: string) {
+        views.forEach((v) => v.classList.toggle("view-hidden", v.id !== `view-${name}`));
+      }
+      document.querySelectorAll("[data-view]").forEach((el) => {
+        el.addEventListener("click", () => showView((el as HTMLElement).dataset.view!));
+      });
+
+      // theme toggle (persisted)
+      const themeToggle = document.getElementById("themeToggle")!;
+      const themeIcon = document.getElementById("themeIcon")!;
+      function applyTheme(light: boolean) {
+        document.body.classList.toggle("light", light);
+        themeIcon.className = light ? "ph-fill ph-moon" : "ph-fill ph-sun";
+        themeToggle.title = light ? "Dark mode" : "Light mode";
+        try { localStorage.setItem("zelva-theme", light ? "light" : "dark"); } catch { /* private mode */ }
+      }
+      let startLight = false;
+      try { startLight = localStorage.getItem("zelva-theme") === "light"; } catch { /* private mode */ }
+      applyTheme(startLight);
+      themeToggle.addEventListener("click", () => {
+        applyTheme(!document.body.classList.contains("light"));
+      });
+    </script>
+
+    <style is:global>
+      * { box-sizing: border-box; }
+      :root {
+        color-scheme: dark;
+        --page-bg: #0d0316;
+        --text: #fff;
+        --text-body: rgba(255, 255, 255, 0.82);
+        --text-muted: rgba(255, 255, 255, 0.5);
+        --text-faint: rgba(255, 255, 255, 0.45);
+        --accent: #ff7ad9;
+        --accent-soft: #ffb9ec;
+        --handle: rgba(255, 185, 236, 0.85);
+        --glass: rgba(255, 255, 255, 0.06);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --glass-inset: rgba(255, 255, 255, 0.14);
+        --card-base: rgba(26, 8, 39, 0.42);
+        --card-sheen-a: rgba(255, 255, 255, 0.14);
+        --card-sheen-b: rgba(255, 255, 255, 0.03);
+        --card-border: rgba(255, 255, 255, 0.16);
+        --card-inset-top: rgba(255, 255, 255, 0.25);
+        --card-inset-bottom: rgba(255, 255, 255, 0.06);
+        --card-shadow: rgba(0, 0, 0, 0.75);
+        --ring-gap: rgba(26, 8, 39, 0.9);
+        --status-gap: rgba(26, 8, 39, 0.95);
+
+        --social-hover-bg: rgba(255, 90, 200, 0.2);
+        --social-hover-color: #fff;
+        --pill-bg: rgba(26, 8, 39, 0.55);
+        --pill-hover-color: #fff;
+      }
+      body.light {
+        color-scheme: light;
+        --page-bg: #f6e7f2;
+        --text: #33123f;
+        --text-body: rgba(51, 18, 63, 0.8);
+        --text-muted: rgba(51, 18, 63, 0.55);
+        --text-faint: rgba(51, 18, 63, 0.5);
+        --accent: #d633a8;
+        --accent-soft: #b83692;
+        --handle: rgba(184, 54, 146, 0.9);
+        --glass: rgba(255, 255, 255, 0.55);
+        --glass-border: rgba(184, 54, 146, 0.18);
+        --glass-inset: rgba(255, 255, 255, 0.7);
+        --card-base: rgba(255, 244, 250, 0.55);
+        --card-sheen-a: rgba(255, 255, 255, 0.7);
+        --card-sheen-b: rgba(255, 255, 255, 0.25);
+        --card-border: rgba(255, 255, 255, 0.8);
+        --card-inset-top: rgba(255, 255, 255, 0.8);
+        --card-inset-bottom: rgba(184, 54, 146, 0.08);
+        --card-shadow: rgba(150, 60, 130, 0.35);
+        --ring-gap: rgba(255, 255, 255, 0.92);
+        --status-gap: rgba(255, 255, 255, 0.95);
+
+        --social-hover-bg: rgba(255, 90, 200, 0.25);
+        --social-hover-color: #a02080;
+        --pill-bg: rgba(255, 255, 255, 0.6);
+        --pill-hover-color: #a02080;
+      }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "Lexend", system-ui, sans-serif;
+        background: var(--page-bg);
+        color: var(--text);
+      }
+      body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+
+      .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--page-bg); }
+      body.light .bg-tint { background: rgba(246, 231, 242, 0.5); }
+      body.light .blob { mix-blend-mode: multiply; }
+      body.light .blob-a { background: rgba(255, 150, 210, 0.55); }
+      body.light .blob-b { background: rgba(190, 150, 230, 0.6); }
+      .bg-img {
+        position: absolute;
+        inset: -8%;
+        width: 116%;
+        height: 116%;
+        object-fit: cover;
+        opacity: 0.55;
+        filter: saturate(1.4);
+        animation: bg-drift 26s ease-in-out infinite alternate;
+        transition: opacity 0.5s ease;
+      }
+      .bg-img.bg-fade { opacity: 0; }
+      .bg-tint {
+        position: absolute;
+        inset: 0;
+        background: rgba(13, 3, 22, 0.25);
+      }
+      .blob { position: absolute; border-radius: 50%; filter: blur(90px); mix-blend-mode: screen; }
+      .blob-a {
+        width: 44vmax; height: 44vmax;
+        left: -10vmax; top: -12vmax;
+        background: rgba(255, 90, 200, 0.4);
+        animation: blob-a 18s ease-in-out infinite alternate;
+      }
+      .blob-b {
+        width: 40vmax; height: 40vmax;
+        right: -8vmax; bottom: -10vmax;
+        background: rgba(123, 61, 146, 0.5);
+        animation: blob-b 22s ease-in-out infinite alternate;
+      }
+      .bg-grain {
+        position: absolute; inset: 0;
+        opacity: 0.5;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E");
+      }
+      @keyframes bg-drift {
+        from { transform: scale(1.02) translate(-1.5%, -1%); }
+        to { transform: scale(1.1) translate(1.5%, 1.5%); }
+      }
+      @keyframes blob-a {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(9vmax, 7vmax) scale(1.25); }
+      }
+      @keyframes blob-b {
+        from { transform: translate(0, 0) scale(1.15); }
+        to { transform: translate(-8vmax, -6vmax) scale(0.95); }
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.4rem;
+        padding: 3rem 1rem;
+      }
+      /* subtle settle-in once the gate lifts */
+      main { transition: transform 0.9s ease, filter 0.9s ease; }
+      body:not(.entered) main { transform: scale(1.035); }
+
+      .cards {
+        display: grid;
+        justify-items: center;
+        width: 100%;
+      }
+      .cards .scene {
+        grid-area: 1 / 1;
+        transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+      }
+      .cards .scene.view-hidden {
+        opacity: 0;
+        transform: scale(0.96);
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      /* ——— enter gate ——— */
+      .enter {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 1.1rem;
+        cursor: pointer;
+        background: rgba(10, 2, 18, 0.55);
+        backdrop-filter: blur(34px) saturate(1.3);
+        -webkit-backdrop-filter: blur(34px) saturate(1.3);
+        transition: opacity 0.7s ease, visibility 0.7s;
+      }
+      .enter--hidden { opacity: 0; visibility: hidden; }
+      .enter-cta {
+        font-size: 0.95rem;
+        font-weight: 400;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: rgba(255, 185, 236, 0.9);
+        text-shadow: 0 0 18px rgba(255, 90, 200, 0.6);
+        transition: color 0.3s ease;
+        animation: cta-breathe 2.4s ease-in-out infinite;
+      }
+      .enter:hover .enter-cta { color: #fff; }
+      .enter-warn {
+        font-size: 0.68rem;
+        font-weight: 400;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      @keyframes cta-breathe {
+        0%, 100% { opacity: 0.55; }
+        50% { opacity: 1; }
+      }
+
+      /* ——— floating corner pills ——— */
+      .float-pill {
+        position: fixed;
+        top: 1.1rem;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.6rem 0.85rem;
+        font-size: 1.1rem;
+        color: var(--accent-soft);
+        cursor: pointer;
+        border-radius: 999px;
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+          var(--pill-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(16px) saturate(1.4);
+        -webkit-backdrop-filter: blur(16px) saturate(1.4);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 6px 20px -12px rgba(255, 90, 200, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        opacity: 0;
+        transform: translateY(-12px);
+        pointer-events: none;
+        transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s, color 0.2s ease, border-color 0.2s ease;
+      }
+      .music-pill { left: 1.1rem; gap: 0.3rem; cursor: default; }
+      .theme-toggle { right: 1.1rem; }
+      body.entered .float-pill { opacity: 1; transform: none; pointer-events: auto; }
+      .float-pill.beaming { border-color: transparent; }
+      .pill-empty { opacity: 0.45 !important; }
+      .vol-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 72px;
+        height: 14px;
+      }
+      .vol-track, .vol-fill {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        height: 4px;
+        border-radius: 3px;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+      .vol-track { right: 0; background: rgba(128, 128, 128, 0.35); }
+      .vol-fill { width: 50%; background: var(--accent); }
+      .vol-wrap:hover .vol-track { background: rgba(160, 160, 160, 0.4); }
+      .vol-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        position: relative;
+        width: 100%;
+        height: 14px;
+        margin: 0;
+        background: transparent;
+        outline: none;
+        cursor: pointer;
+      }
+      .vol-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        margin-top: 1px;
+        border-radius: 50%;
+        background: #fff;
+        border: none;
+        box-shadow: 0 0 8px rgba(255, 90, 200, 0.8);
+      }
+      .vol-slider::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        border: none;
+        box-shadow: 0 0 8px rgba(255, 90, 200, 0.8);
+      }
+      .vol-slider::-moz-range-track { height: 4px; background: transparent; }
+      .vol-slider.beaming::-webkit-slider-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
+      .vol-slider.beaming::-moz-range-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
+      @keyframes thumb-pulse {
+        0%, 100% { box-shadow: 0 0 8px rgba(255, 90, 200, 0.8); }
+        50% { box-shadow: 0 0 16px rgba(255, 90, 200, 1); }
+      }
+      .pill-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.05rem;
+        padding: 0.1rem 0.25rem;
+        border-radius: 8px;
+        transition: color 0.2s ease, transform 0.15s ease;
+      }
+      .pill-btn:hover { color: var(--pill-hover-color); }
+      .pill-btn.beaming { animation: icon-pulse 2.2s ease-in-out infinite; }
+      .pill-btn:active { transform: scale(0.9); }
+      @keyframes icon-pulse {
+        0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 90, 200, 0.5)); }
+        50% { filter: drop-shadow(0 0 8px rgba(255, 90, 200, 1)); }
+      }
+      .track-name {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        padding-left: 0.15rem;
+      }
+      @media (max-width: 480px) {
+        .track-name { display: none; }
+        .music-pill { gap: 0.1rem; }
+        .vol-wrap { width: 56px; }
+      }
+      .eq { display: flex; align-items: flex-end; gap: 2.5px; height: 14px; }
+      .eq span {
+        width: 3px;
+        border-radius: 2px;
+        background: currentColor;
+        transform-origin: bottom;
+        animation: eq-bounce 0.9s ease-in-out infinite;
+      }
+      .eq span:nth-child(1) { height: 60%; animation-delay: -0.3s; }
+      .eq span:nth-child(2) { height: 100%; animation-delay: -0.6s; }
+      .eq span:nth-child(3) { height: 40%; animation-delay: 0s; }
+      .eq--paused span { animation-play-state: paused; height: 4px !important; }
+      @keyframes eq-bounce {
+        0%, 100% { transform: scaleY(0.4); }
+        50% { transform: scaleY(1); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bg-img, .blob, .enter-cta, .eq span { animation: none; }
+        main, .enter, .float-pill { transition: none; }
+      }
+    </style>
+  </body>
 </html>

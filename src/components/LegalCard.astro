@@ -1,0 +1,150 @@
+---
+import type { LegalDoc } from "../data/legal";
+
+interface Props {
+  id: string;
+  doc: LegalDoc;
+}
+
+const { id, doc } = Astro.props;
+---
+
+<div class="scene view-hidden" id={id}>
+  <article class="glass-card legal-card" data-tilt>
+    <div class="card-glare" data-glare></div>
+    <span class="beam-border" aria-hidden="true"></span>
+
+    <button class="legal-back" data-view="profile" type="button">
+      <i class="ph-bold ph-arrow-left"></i> back
+    </button>
+
+    <header class="legal-head layer">
+      <span class="legal-icon"><i class={doc.icon}></i></span>
+      <div class="legal-titles">
+        <h2>{doc.title}</h2>
+        <p class="legal-updated">Last updated · {doc.updated}</p>
+      </div>
+    </header>
+
+    <div class="legal-body layer">
+      {doc.sections.map((s) => (
+        <section>
+          <h3>{s.heading}</h3>
+          <p>{s.body}</p>
+        </section>
+      ))}
+    </div>
+
+    <p class="legal-foot layer">{doc.footer}</p>
+  </article>
+</div>
+
+<style>
+  .legal-card {
+    width: min(340px, calc(100vw - 2.5rem));
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: min(78vh, 640px);
+  }
+  .legal-back {
+    position: relative;
+    z-index: 2;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 0.9rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .legal-back:hover { color: var(--accent-soft); }
+  .legal-back.beaming { animation: text-pulse 2.2s ease-in-out infinite; }
+  .legal-back i { font-size: 0.95rem; }
+  .legal-head {
+    --z: 20px;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+  .legal-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 1.4rem;
+    color: var(--accent);
+    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-inset);
+    transition: border-color 0.3s ease;
+  }
+  .legal-icon:hover { border-color: #ff8ad9; }
+  .legal-icon.beaming {
+    border-color: #ff8ad9;
+    animation: icon-box-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes icon-box-pulse {
+    0%, 100% { box-shadow: inset 0 1px 0 var(--glass-inset), 0 0 12px -6px rgba(255, 90, 200, 0.4); }
+    50% { box-shadow: inset 0 1px 0 var(--glass-inset), 0 0 24px -4px rgba(255, 90, 200, 0.8); }
+  }
+  .legal-titles h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .legal-updated {
+    margin: 0.15rem 0 0;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .legal-body {
+    --z: 12px;
+    position: relative;
+    z-index: 2;
+    margin-top: 1rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 122, 217, 0.5) transparent;
+  }
+  .legal-body::-webkit-scrollbar { width: 5px; }
+  .legal-body::-webkit-scrollbar-thumb { background: rgba(255, 122, 217, 0.5); border-radius: 3px; }
+  .legal-body section + section { margin-top: 0.9rem; }
+  .legal-body h3 {
+    margin: 0 0 0.25rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--accent-soft);
+  }
+  .legal-body p {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .legal-foot {
+    --z: 8px;
+    position: relative;
+    z-index: 2;
+    margin: 1rem 0 0;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+  }
+</style>

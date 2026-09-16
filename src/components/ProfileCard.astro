@@ -1,0 +1,252 @@
+---
+import { profile } from "../data/profile";
+---
+
+<div class="scene" id="view-profile">
+  <div class="glass-card profile-card" data-tilt>
+    <div class="card-glare" data-glare></div>
+    <span class="beam-border" aria-hidden="true"></span>
+
+    <!-- Banner -->
+    <div class="banner layer" data-depth="12">
+      <img src="/bg.gif" alt="" aria-hidden="true" />
+    </div>
+
+    <!-- Avatar row -->
+    <div class="avatar-row layer" data-depth="34">
+      <div class="avatar-ring">
+        <img class="avatar" src={profile.avatar} alt={`${profile.displayName}'s avatar`} />
+        <span class={`status status--${profile.status}`} title={profile.status}></span>
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="identity layer" data-depth="22">
+      <h1 class="name">
+        {profile.displayName}
+        <i class="ph-fill ph-seal-check verified" title="Verified"></i>
+      </h1>
+      <p class="handle">@{profile.name} · {profile.pronouns}</p>
+      <p class="bio">{profile.bio}</p>
+      <p class="location">
+        <i class="ph-fill ph-map-pin"></i> {profile.location}
+      </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats layer" data-depth="16">
+      {profile.stats.map((s) => (
+        <div class="stat">
+          <span class="stat-value">{s.value}</span>
+          <span class="stat-label">{s.label}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Socials -->
+    <div class="links layer" data-depth="26">
+      {profile.links.map((l) => (
+        <a class="social" href={l.href} title={l.label} aria-label={l.label} target="_blank" rel="noopener">
+          <span class="beam-border" aria-hidden="true"></span>
+          <i class={l.icon}></i>
+        </a>
+      ))}
+    </div>
+
+    <!-- Legal -->
+    <div class="legal layer" data-depth="8">
+      <button type="button" data-view="privacy">Privacy</button>
+      <span aria-hidden="true">•</span>
+      <button type="button" data-view="terms">Terms</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .profile-card {
+    width: min(400px, calc(100vw - 2.5rem));
+    padding: 0 0 1.25rem;
+  }
+
+  /* ——— banner ——— */
+  .banner {
+    position: relative;
+    height: 128px;
+    margin: 10px 10px 0;
+    border-radius: 19px;
+    overflow: hidden;
+    --z: 12px;
+  }
+  .banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.15);
+    filter: saturate(1.3);
+  }
+  /* ——— avatar ——— */
+  .avatar-row {
+    --z: 34px;
+    display: flex;
+    padding: 0 1.4rem;
+    margin-top: -34px;
+    position: relative;
+    z-index: 3;
+  }
+  .avatar-ring {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    padding: 3px;
+    background: #ff5ac8;
+    box-shadow: 0 0 32px -4px rgba(255, 90, 200, 0.8), 0 8px 24px rgba(80, 15, 60, 0.5);
+  }
+  .avatar-ring.beaming { animation: ring-pulse 2.2s ease-in-out infinite; }
+  @keyframes ring-pulse {
+    0%, 100% { box-shadow: 0 0 32px -4px rgba(255, 90, 200, 0.8), 0 8px 24px rgba(80, 15, 60, 0.5); }
+    50% { box-shadow: 0 0 48px -2px rgba(255, 90, 200, 1), 0 8px 24px rgba(80, 15, 60, 0.5); }
+  }
+  .avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--ring-gap);
+    display: block;
+  }
+  .status {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid var(--status-gap);
+  }
+  .status--online { background: #3bff9e; box-shadow: 0 0 12px rgba(59, 255, 158, 0.9); }
+  .status--idle { background: #ffce3b; box-shadow: 0 0 12px rgba(255, 206, 59, 0.9); }
+  .status--dnd { background: #ff5a5a; box-shadow: 0 0 12px rgba(255, 90, 90, 0.9); }
+
+  /* ——— identity ——— */
+  .identity { --z: 22px; padding: 0.7rem 1.5rem 0; position: relative; z-index: 2; }
+  .name {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-shadow: 0 0 24px rgba(255, 90, 200, 0.5);
+  }
+  .verified { font-size: 1.2rem; color: var(--accent); filter: drop-shadow(0 0 8px rgba(255, 90, 200, 0.8)); }
+  .handle { margin: 0.1rem 0 0; font-size: 0.85rem; font-weight: 500; color: var(--handle); }
+  .bio { margin: 0.55rem 0 0; font-size: 0.92rem; font-weight: 300; line-height: 1.5; color: var(--text-body); }
+  .location {
+    margin: 0.5rem 0 0;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .location i { color: var(--accent); }
+
+  /* ——— stats ——— */
+  .stats {
+    --z: 16px;
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.9rem 1.5rem 0;
+    position: relative;
+    z-index: 2;
+  }
+  .stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    padding: 0.55rem 0;
+    border-radius: 15px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-inset);
+    transition: border-color 0.3s ease;
+  }
+  .stat:hover { border-color: #ff8ad9; }
+  .stat.beaming { border-color: #ff8ad9; animation: stat-pulse 2.2s ease-in-out infinite; }
+  @keyframes stat-pulse {
+    0%, 100% { box-shadow: inset 0 1px 0 var(--glass-inset), 0 0 12px -6px rgba(255, 90, 200, 0.4); }
+    50% { box-shadow: inset 0 1px 0 var(--glass-inset), 0 0 24px -4px rgba(255, 90, 200, 0.8); }
+  }
+  .stat-value { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 0.68rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+
+  /* ——— socials ——— */
+  .links {
+    --z: 26px;
+    display: flex;
+    justify-content: center;
+    gap: 0.7rem;
+    padding: 1rem 1.5rem 0;
+    position: relative;
+    z-index: 2;
+  }
+  .social {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    color: var(--accent-soft);
+    text-decoration: none;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-inset);
+    overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .social:hover {
+    color: var(--social-hover-color);
+    background: var(--social-hover-bg);
+  }
+  .social.beaming { border-color: transparent; }
+  .social i { position: relative; z-index: 1; transition: transform 0.3s ease; }
+  .social:hover i { transform: scale(1.12) rotate(-6deg); }
+
+  /* ——— legal ——— */
+  .legal {
+    --z: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 1.5rem 0;
+    position: relative;
+    z-index: 2;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--text-faint);
+  }
+  .legal button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .legal button:hover { color: var(--accent-soft); }
+  .legal button.beaming { animation: text-pulse 2.2s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .social, .social i { transition: none; }
+  }
+</style>
