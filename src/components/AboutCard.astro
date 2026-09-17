@@ -9,6 +9,15 @@ import { about } from "../data/about";
     <span class="beam-border" aria-hidden="true"></span>
 
     <p class="about-statement layer">{about.text}</p>
+
+    <div
+      class="world-slot layer"
+      id="worldMapSlot"
+      role="img"
+      aria-label="World map colored by LGBT Equality Index score"
+    >
+      <span class="world-loading" aria-hidden="true"></span>
+    </div>
   </article>
 </div>
 
@@ -17,8 +26,10 @@ import { about } from "../data/about";
     width: min(560px, calc(100vw - 2.5rem));
     padding: 2.6rem 2.4rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2rem;
   }
   .about-statement {
     --z: 20px;
@@ -35,4 +46,47 @@ import { about } from "../data/about";
   }
   .about-statement strong { font-weight: 800; }
   .about-statement em { font-weight: 600; color: var(--accent-soft); }
+
+  /* ——— world map: fixed aspect reserves the space, so the lazy SVG
+     never shifts layout ——— */
+  .world-slot {
+    --z: 12px;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    aspect-ratio: 1009.7 / 666;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--glass-border);
+  }
+  body.light .world-slot { background: rgba(255, 255, 255, 0.45); }
+  .world-slot--error { aspect-ratio: auto; }
+  .world-loading {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.08) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: world-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes world-shimmer {
+    from { background-position: 120% 0; }
+    to { background-position: -120% 0; }
+  }
+  .world-error {
+    margin: 0;
+    padding: 1.6rem 1.2rem;
+    font-size: 0.88rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .world-error a { color: var(--accent-soft); }
+
+  @media (max-width: 480px) {
+    .about-card { padding: 2rem 1.2rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .world-loading { animation: none; }
+  }
 </style>

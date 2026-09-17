@@ -8,6 +8,7 @@ import LegalCard from "../components/LegalCard.astro";
 import { privacy, terms } from "../data/legal";
 import "../styles/glass.css";
 import "../styles/creation.css";
+import "../styles/worldmap.css";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -136,6 +137,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       import { initComments } from "../scripts/comments";
       import { initCustomCursor } from "../scripts/cursor";
       import { initWidgets } from "../scripts/widgets";
+      import { loadWorldMap } from "../scripts/worldmap";
       import type { SupabaseClient } from "@supabase/supabase-js";
       import type { ZelvaDB } from "../db/database";
 
@@ -487,6 +489,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       let viewToken = 0;
       function showView(name: string) {
         const token = ++viewToken;
+        // the world map (~420KB SVG) loads on first visit, never up front
+        if (name === "about") loadWorldMap();
         const reduceMotionSwap = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         views.forEach((v) => {
           if (v.id === `view-${name}`) {

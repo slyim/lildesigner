@@ -1,0 +1,45 @@
+/* World map (About tab). Global on purpose: the SVG is fetched and
+   injected by worldmap.ts, so its paths never get Astro's scoped data
+   attributes. Ten buckets carry the Equality Index score on a
+   violet-to-pink ramp (pale-to-magenta in light theme). */
+
+.world-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.world-svg path {
+  stroke: rgba(13, 3, 22, 0.6);
+  stroke-width: 0.8;
+  transition: filter 0.15s ease;
+}
+.world-svg path:hover { filter: brightness(1.3); }
+
+.wm-eq0 { fill: #281537; }
+.wm-eq1 { fill: #3e1b50; }
+.wm-eq2 { fill: #58206b; }
+.wm-eq3 { fill: #772387; }
+.wm-eq4 { fill: #9b25a4; }
+.wm-eq5 { fill: #c226be; }
+.wm-eq6 { fill: #dc2bc7; }
+.wm-eq7 { fill: #e541c2; }
+.wm-eq8 { fill: #ed59c0; }
+.wm-eq9 { fill: #f471c0; }
+.wm-unranked { fill: rgba(255, 255, 255, 0.07); stroke: rgba(255, 255, 255, 0.16); }
+
+body.light .world-svg path { stroke: rgba(51, 18, 63, 0.35); }
+body.light .wm-eq0 { fill: #f1e9f1; }
+body.light .wm-eq1 { fill: #e5d3e5; }
+body.light .wm-eq2 { fill: #dbbbda; }
+body.light .wm-eq3 { fill: #d2a2cf; }
+body.light .wm-eq4 { fill: #cb87c4; }
+body.light .wm-eq5 { fill: #c66bb8; }
+body.light .wm-eq6 { fill: #c14dac; }
+body.light .wm-eq7 { fill: #b5379a; }
+body.light .wm-eq8 { fill: #9f2b83; }
+body.light .wm-eq9 { fill: #88206b; }
+body.light .wm-unranked { fill: rgba(51, 18, 63, 0.07); stroke: rgba(51, 18, 63, 0.2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .world-svg path { transition: none; }
+}

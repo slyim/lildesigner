@@ -10,7 +10,9 @@ const TRAIL_EVERY_MS = 32;
 
 export function initCustomCursor() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  if (!window.matchMedia("(hover: hover)").matches) return;
+  // desktop pointers only: a fine primary pointer excludes phones and
+  // tablets even when they report a hover capability (trackpads, styli)
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
   const blob = document.createElement("div");
   blob.className = "cursor-blob";
