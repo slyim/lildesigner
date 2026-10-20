@@ -10,10 +10,6 @@ const REWRITE_JITTER = 9000;
 const ERASE_MIN_TICK = 28;
 const ERASE_JITTER = 32;
 
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 function typeName(el: HTMLElement, full: string, onDone: () => void) {
   let i = 0;
   const tick = () => {
@@ -47,7 +43,6 @@ function scheduleRewrite(el: HTMLElement, full: string) {
   const delay = REWRITE_MIN_DELAY + Math.random() * REWRITE_JITTER;
   setTimeout(() => {
     if (!el.isConnected) return;
-    if (prefersReducedMotion()) return;
     // Don't rewrite while the tab is hidden — wait for a visible moment.
     if (document.hidden) {
       scheduleRewrite(el, full);
@@ -71,7 +66,6 @@ export function playNameTyping(root: ParentNode = document, keepInitial = false)
   if (!el) return;
   const full = el.textContent ?? "";
   if (!full) return;
-  if (prefersReducedMotion()) return;
   // after the creation build the name is already assembled — wiping it here
   // would read as the card restarting itself, so only schedule rewrites
   if (keepInitial) {

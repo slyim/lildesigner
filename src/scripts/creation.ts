@@ -29,6 +29,8 @@ export interface CreationOptions {
 
 const HOLD_MS = 700;
 const BANG_HOLD_MS = 1100;
+/** longest the black stage waits for product.mp3 to start before building anyway */
+const PLAY_WAIT_MS = 1500;
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -143,18 +145,23 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
   // MediaElementSource to an already-playing element reroutes live audio
   // with an audible clip. startBeatSync later reuses this same tap.
   tapAnalyser(audio, 1024);
-  // metadata isn't in yet, so a bare currentTime assignment throws — hook it
+  // metadata usually isn't in yet, so a bare currentTime assignment throws —
+  // hook it (or seek now if it's already loaded, or the hook never fires)
   const startAt = opts.start ?? 0;
   if (startAt > 0) {
     const seek = () => {
       try { audio.currentTime = startAt; } catch { /* keep 0 */ }
       audio.removeEventListener("loadedmetadata", seek);
     };
-    audio.addEventListener("loadedmetadata", seek);
+    if (audio.readyState >= 1) seek();
+    else audio.addEventListener("loadedmetadata", seek);
   }
-  try {
-    await audio.play();
-  } catch { /* blocked: the build still plays, music starts on user toggle */ }
+  // on a slow network play() only resolves once enough has buffered — cap
+  // the wait so the stage never sits black; the music joins when it's ready
+  await Promise.race([
+    audio.play().catch(() => { /* blocked: the build still plays, music starts on user toggle */ }),
+    wait(PLAY_WAIT_MS),
+  ]);
 
   // lift the black: the build emerges from complete darkness as the music starts
   document.getElementById("creation")?.classList.add("creation--lifted");

@@ -1,6 +1,6 @@
 // GSAP entrance choreography for the profile card.
-// Plays once when the click-to-enter gate lifts. Uses `from` tweens with
-// cleared props, so reduced-motion users simply see the final state.
+// Plays once when the click-to-enter gate lifts (only when the creation
+// sequence couldn't run). Uses `from` tweens with cleared props.
 //
 // NOTE: never animate #view-profile or .profile-card itself — both feed the
 // glass backdrop-filter, and animating transform/opacity on a backdrop-filter
@@ -20,7 +20,6 @@ const TARGETS = [
 export function playEntrance() {
   if (played) return;
   played = true;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   if (!document.querySelector("#view-profile .profile-card")) return;
   const tl = gsap.timeline({
     defaults: { ease: "expo.out", duration: 0.6, clearProps: "transform,opacity" },

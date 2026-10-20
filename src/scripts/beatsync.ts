@@ -155,16 +155,20 @@ let syncRunning = false;
  * EQ updates at half rate — visually identical, far fewer style recalcs.
  * Keep --beat-pulse readers composited (opacity/scale) outside tiny boxes:
  * a fullscreen `filter` reader would repaint every pixel, every frame.
+ * The var is written only on its readers (see creation.css), never on
+ * :root — an inherited custom property there restyles the whole document
+ * on every frame. The profile card's subtree covers the ring and name.
  */
 export function startBeatSync(audio: HTMLAudioElement) {
   if (syncRunning) return;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const analyser = tapAnalyser(audio, 1024);
   if (!analyser) return;
   syncRunning = true;
   document.body.classList.add("beatsync");
 
-  const root = document.documentElement;
+  const readers = [
+    ...document.querySelectorAll<HTMLElement>(".beat-vignette, .beat-flash, #view-profile .profile-card"),
+  ];
   const buf = new Uint8Array(analyser.frequencyBinCount);
   const detector = new BeatDetector();
   const eq = [...document.querySelectorAll<HTMLElement>("#musicEq span")];
@@ -205,7 +209,7 @@ export function startBeatSync(audio: HTMLAudioElement) {
     // 2 decimals: 100 pulse steps look identical to 1000 but dedupe far more
     const pulseStr = pulse.toFixed(2);
     if (pulseStr !== lastPulse) {
-      root.style.setProperty("--beat-pulse", pulseStr);
+      for (const el of readers) el.style.setProperty("--beat-pulse", pulseStr);
       lastPulse = pulseStr;
     }
     requestAnimationFrame(loop);

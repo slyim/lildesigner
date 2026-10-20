@@ -178,16 +178,3 @@ body.custom-cursor, body.custom-cursor * { cursor: none !important; }
 @media (hover: none) {
   .glass-card { will-change: auto; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .glass-card { transform: none !important; }
-  .glass-card, .float-pill, .social, .meta-item, .avatar-ring, .pill-btn, .tab,
-  .legal button, .legal-back, .legal-icon, .beam-border::before,
-  .vol-slider::-webkit-slider-thumb, .vol-slider::-moz-range-thumb {
-    animation: none !important;
-  }
-  .cursor-blob, .cursor-trail, .cursor-ripple { display: none; }
-  .beam-border { display: none; }
-  .glass-card.beaming { border-color: var(--card-border); }
-  .social.beaming, .float-pill.beaming { border-color: var(--glass-border); }
-}

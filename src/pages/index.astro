@@ -50,9 +50,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
   <body>
     <script is:inline>try{if(matchMedia("(prefers-color-scheme: light)").matches)document.body.classList.add("light")}catch(e){}</script>
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
-    <!-- liquid-glass backdrop -->
+    <!-- liquid-glass backdrop. Starts on the bang footage (tracks[0].bg) so
+         the gate pre-buffers what the creation actually shows, instead of
+         downloading a clip that's swapped out the moment you click -->
     <div class="bg" aria-hidden="true">
-      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/bg.gif" muted loop playsinline preload="auto" aria-hidden="true"></video>
+      <video class="bg-img" id="bgVideo" src="/blackhole.mp4" poster="/banner.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
     </div>
     <div class="beat-flash" aria-hidden="true"></div>
 
@@ -227,12 +229,12 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         });
       }
 
-      // still background for reduced-motion users
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
+      // motion is identical for every visitor, whatever their OS motion
+      // setting — the gate warns about flashing/motion before anything plays
       const enter = document.getElementById("enter")!;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
       const bgVideo = document.getElementById("bgVideo") as HTMLVideoElement;
+      const bannerVideo = document.getElementById("bannerVideo") as HTMLVideoElement | null;
 
       // background follows the music: dip out, swap video, fade back in.
       // Generation token: rapid track skips abort stale swaps instead of
@@ -245,7 +247,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         setTimeout(() => {
           if (token !== bgToken) return;
           bgVideo.setAttribute("src", src);
-          if (!reduceMotion) bgVideo.play().catch(() => {});
+          bgVideo.play().catch(() => {});
           const show = () => {
             // detach first: stale tokens return early and would otherwise
             // pile a dead listener onto every rapid track skip
@@ -405,13 +407,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         document.querySelector<HTMLButtonElement>(".tab.is-active")?.focus({ preventScroll: true });
         enter.classList.add("enter--hidden");
         setTimeout(() => enter.remove(), 900);
-        if (reduceMotion) {
-          document.body.classList.add("entered");
-          playEntrance();
-          playNameTyping();
-          playTrack(0, { force: true });
-          return;
-        }
+        // the banner sat on its poster behind the gate (one less moving
+        // layer under the blur) — it plays from the first piece of the build
+        bannerVideo?.play().catch(() => {});
         // creation ritual: on a dark stage the actual card assembles itself
         // in 3D while product.mp3 plays, then BANG — the blackhole ignites
         // behind the card. The card never leaves the screen. Product keeps
@@ -459,13 +457,15 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         }
       }
 
-      // hidden tabs keep decoding fullscreen video for nobody — park it.
+      // hidden tabs keep decoding video for nobody — park it.
       // Music is a separate element, so it plays on uninterrupted.
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           bgVideo.pause();
-        } else if (entered && !reduceMotion && !document.body.classList.contains("creating")) {
-          bgVideo.play().catch(() => {});
+          bannerVideo?.pause();
+        } else if (entered) {
+          bannerVideo?.play().catch(() => {});
+          if (!document.body.classList.contains("creating")) bgVideo.play().catch(() => {});
         }
       });
 
@@ -491,33 +491,25 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         const token = ++viewToken;
         // the world map (~420KB SVG) loads on first visit, never up front
         if (name === "about") loadWorldMap();
-        const reduceMotionSwap = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         views.forEach((v) => {
           if (v.id === `view-${name}`) {
             // a mid-leave re-entry must restart the enter — not early-return,
             // or the aborted leave timeout strands it invisible at opacity 0
             const isLive = !v.classList.contains("view-hidden") && !v.classList.contains("view-prewarm") && !v.classList.contains("view-leave");
             if (isLive) return;
-            if (reduceMotionSwap) {
-              v.classList.remove("view-hidden", "view-leave", "view-enter", "view-prewarm");
-            } else {
-              v.classList.remove("view-hidden", "view-leave", "view-enter");
-              // prewarm: visible to the renderer (so the glass backdrop-filter
-              // rasterizes) but transparent for 2 frames, then the enter fade
-              // starts with the blur already live — else the first frames paint
-              // semi-transparent with no blur. Same token guard as the leave.
-              v.classList.add("view-prewarm");
-              requestAnimationFrame(() => requestAnimationFrame(() => {
-                if (token !== viewToken) return;
-                v.classList.remove("view-prewarm");
-                v.classList.add("view-enter");
-              }));
-            }
-          } else if (!v.classList.contains("view-hidden")) {
-            if (reduceMotionSwap) {
+            v.classList.remove("view-hidden", "view-leave", "view-enter");
+            // prewarm: visible to the renderer (so the glass backdrop-filter
+            // rasterizes) but transparent for 2 frames, then the enter fade
+            // starts with the blur already live — else the first frames paint
+            // semi-transparent with no blur. Same token guard as the leave.
+            v.classList.add("view-prewarm");
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              if (token !== viewToken) return;
               v.classList.remove("view-prewarm");
-              v.classList.add("view-hidden");
-            } else if (v.classList.contains("view-prewarm")) {
+              v.classList.add("view-enter");
+            }));
+          } else if (!v.classList.contains("view-hidden")) {
+            if (v.classList.contains("view-prewarm")) {
               // never became visible — park it, no leave animation to flash
               v.classList.remove("view-enter", "view-prewarm");
               v.classList.add("view-hidden");
@@ -633,7 +625,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         object-fit: cover;
         opacity: 1;
         animation: bg-drift 26s ease-in-out infinite alternate;
-        transition: opacity 0.5s ease, filter 0.9s ease;
+        transition: opacity 0.5s ease;
       }
       .bg-img.bg-fade { opacity: 0; }
       @keyframes bg-drift {
@@ -657,10 +649,12 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       @media (max-width: 1020px) {
         main { padding-top: 9rem; }
       }
-      /* blurred behind the gate, settles into focus once it lifts */
-      main { transition: transform 0.9s ease, filter 0.9s ease; }
-      body:not(.entered) main { transform: scale(1.035); filter: blur(14px); }
-      body:not(.entered) .bg-img { filter: blur(40px); }
+      /* zoomed behind the gate, settles once it lifts. The blur itself is the
+         gate's single backdrop-filter: separate `filter` blurs on main and the
+         video stacked three fullscreen blurs, and a filter on main also made
+         it a backdrop root, so the glass cards inside lost their blur. */
+      main { transition: transform 0.9s ease; }
+      body:not(.entered) main { transform: scale(1.035); }
 
       .cards {
         display: grid;
@@ -714,8 +708,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         gap: 1.1rem;
         cursor: pointer;
         background: rgba(10, 2, 18, 0.55);
-        backdrop-filter: blur(34px) saturate(1.3);
-        -webkit-backdrop-filter: blur(34px) saturate(1.3);
+        backdrop-filter: blur(44px) saturate(1.3);
+        -webkit-backdrop-filter: blur(44px) saturate(1.3);
         transition: opacity 0.7s ease, visibility 0.7s;
       }
       .enter--hidden { opacity: 0; visibility: hidden; }
@@ -1001,18 +995,10 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
          still plays, so the background never looks static. */
       @media (max-width: 768px) {
         .bg-img { inset: 0; width: 100%; height: 100%; animation: none; }
-        body:not(.entered) .bg-img { filter: blur(16px); }
-        body:not(.entered) main { filter: blur(10px); }
         .enter {
-          backdrop-filter: blur(20px) saturate(1.3);
-          -webkit-backdrop-filter: blur(20px) saturate(1.3);
+          backdrop-filter: blur(26px) saturate(1.3);
+          -webkit-backdrop-filter: blur(26px) saturate(1.3);
         }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .bg-img, .enter-cta, .eq span, .track-name-text { animation: none !important; }
-        .cards .scene.view-leave, .cards .scene.view-enter { animation: none; }
-        main, .enter, .float-pill, .tabbar, .tab, .cards .scene { transition: none; }
       }
     </style>
   </body>

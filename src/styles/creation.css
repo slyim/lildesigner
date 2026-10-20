@@ -18,8 +18,11 @@ body.no-glass #view-profile .profile-card {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-/* …and park the in-card particle canvas for the same reason */
-body.creating .card-particles { display: none; }
+/* …and park the in-card particle canvas for the same reason — from page
+   load, not just the build: under the gate it redraws every frame beneath a
+   fullscreen backdrop blur, forcing the whole blur to re-raster. Hidden, its
+   IntersectionObserver stops the rAF loop too (see particles.ts). */
+body:not(.entered) .card-particles { display: none; }
 /* build angle: the card assembles tilted in 3D (must match BUILD_TILT in
    creation.ts — the bang swing starts from this exact transform) */
 body.creating #view-profile {
@@ -117,10 +120,3 @@ body.beatsync #view-profile .name {
 body.beatsync .beat-flash { opacity: calc(var(--beat-pulse, 0) * 0.03); }
 /* EQ bars are driven straight from the analyser, not the CSS bounce */
 body.beatsync .eq span { animation: none !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  .creation,
-  .flash-white,
-  .shockwave,
-  .beat-vignette { display: none !important; }
-}

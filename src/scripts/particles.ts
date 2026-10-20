@@ -1,6 +1,6 @@
 // Subtle floating dot particles inside the profile card.
 // A few dozen tiny slow-drifting dots on a DPR-aware canvas: one cheap
-// rAF loop, paused when hidden/offscreen, off for reduced-motion users.
+// rAF loop, paused when hidden/offscreen.
 
 interface Dot {
   x: number;
@@ -15,7 +15,6 @@ interface Dot {
 }
 
 export function initCardParticles() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const card = document.querySelector<HTMLElement>("#view-profile .profile-card");
   if (!card) return;
 

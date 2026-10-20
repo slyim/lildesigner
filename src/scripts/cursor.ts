@@ -1,15 +1,13 @@
 // Custom blob cursor: a gooey morphing blob trails the pointer with a soft
 // lerp, squishing and stretching along its velocity, shedding fading
 // droplets as it moves and rippling on click. It swells over anything
-// interactive. Desktop pointers only — touch and reduced-motion users keep
-// the native cursor.
+// interactive. Desktop pointers only — touch users keep the native cursor.
 
 const INTERACTIVE = 'a[href], button, input, textarea, select, [role="button"], [data-tilt]';
 const TRAIL_POOL = 24;
 const TRAIL_EVERY_MS = 32;
 
 export function initCustomCursor() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   // desktop pointers only: a fine primary pointer excludes phones and
   // tablets even when they report a hover capability (trackpads, styli)
   if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;

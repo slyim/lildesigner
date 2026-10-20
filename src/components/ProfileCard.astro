@@ -8,8 +8,10 @@ import { profile } from "../data/profile";
     <span class="beam-border" aria-hidden="true"></span>
 
     <!-- Banner -->
+    <!-- looping clip, not a GIF: hardware-decoded and ~20x smaller. Paused
+         behind the gate; index.astro starts it on enter. -->
     <div class="banner layer" data-depth="12">
-      <img src={profile.banner} alt="" aria-hidden="true" />
+      <video id="bannerVideo" src={profile.banner} poster={profile.bannerPoster} muted loop playsinline preload="auto" aria-hidden="true"></video>
     </div>
 
     <!-- Avatar row -->
@@ -97,13 +99,14 @@ import { profile } from "../data/profile";
     overflow: hidden;
     z-index: 1;
   }
-  .banner img {
+  /* saturation is baked into banner.mp4 — a CSS filter here would
+     repaint the banner on every video frame */
+  .banner video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     transform: scale(1.15);
-    filter: saturate(1.3);
   }
 
   /* ——— avatar ——— */
@@ -334,10 +337,4 @@ import { profile } from "../data/profile";
   }
   .legal button:hover { color: var(--accent-soft); }
   .legal button.beaming { animation: text-pulse 2.2s ease-in-out infinite; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .social, .social i { transition: none; }
-    .name { animation: none; }
-    .typing-caret { display: none; }
-  }
 </style>
