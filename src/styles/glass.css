@@ -58,7 +58,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
-  background: rgba(255, 150, 210, 0.28);
+  background: rgba(150, 210, 255, 0.28);
   filter: blur(55px);
   mix-blend-mode: screen;
 }
@@ -88,7 +88,7 @@
   left: 50%;
   width: max(300%, 1000px);
   aspect-ratio: 1;
-  background: conic-gradient(from 0deg, transparent 60%, rgba(255, 90, 200, 0.55) 80%, transparent 100%);
+  background: conic-gradient(from 0deg, transparent 60%, rgba(var(--glow-rgb), 0.55) 80%, transparent 100%);
   transform: translate(-50%, -50%);
   animation: beam-spin 7s ease-in-out infinite;
   animation-play-state: paused;
@@ -119,8 +119,8 @@ body.custom-cursor, body.custom-cursor * { cursor: none !important; }
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
-  background: radial-gradient(circle at 35% 30%, rgba(255, 200, 235, 0.95), rgba(255, 90, 200, 0.75) 70%);
-  box-shadow: 0 0 18px rgba(255, 90, 200, 0.65), 0 0 46px rgba(255, 90, 200, 0.3);
+  background: radial-gradient(circle at 35% 30%, rgba(200, 235, 255, 0.95), rgba(var(--glow-rgb), 0.75) 70%);
+  box-shadow: 0 0 18px rgba(var(--glow-rgb), 0.65), 0 0 46px rgba(var(--glow-rgb), 0.3);
   animation: blob-morph 3.2s ease-in-out infinite alternate, blob-breathe 2.1s ease-in-out infinite alternate;
 }
 .cursor-blob--shown { opacity: 1; }
@@ -135,8 +135,8 @@ body.custom-cursor, body.custom-cursor * { cursor: none !important; }
 }
 /* breathing glow layered over the morph (box-shadow never fights the JS transform) */
 @keyframes blob-breathe {
-  from { box-shadow: 0 0 14px rgba(255, 90, 200, 0.55), 0 0 38px rgba(255, 90, 200, 0.25); }
-  to { box-shadow: 0 0 24px rgba(255, 90, 200, 0.8), 0 0 60px rgba(255, 90, 200, 0.4); }
+  from { box-shadow: 0 0 14px rgba(var(--glow-rgb), 0.55), 0 0 38px rgba(var(--glow-rgb), 0.25); }
+  to { box-shadow: 0 0 24px rgba(var(--glow-rgb), 0.8), 0 0 60px rgba(var(--glow-rgb), 0.4); }
 }
 /* shed droplets + click ripple (positioned + fired from cursor.ts via WAAPI) */
 .cursor-trail, .cursor-ripple {
@@ -149,20 +149,20 @@ body.custom-cursor, body.custom-cursor * { cursor: none !important; }
 }
 .cursor-trail {
   border-radius: 45% 55% 58% 42% / 52% 45% 55% 48%;
-  background: radial-gradient(circle at 35% 30%, rgba(255, 190, 230, 0.9), rgba(255, 90, 200, 0.6) 70%);
+  background: radial-gradient(circle at 35% 30%, rgba(190, 230, 255, 0.9), rgba(var(--glow-rgb), 0.6) 70%);
 }
 .cursor-ripple {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 150, 215, 0.9);
-  box-shadow: 0 0 16px rgba(255, 90, 200, 0.5);
+  border: 2px solid rgba(150, 215, 255, 0.9);
+  box-shadow: 0 0 16px rgba(var(--glow-rgb), 0.5);
 }
 
 /* shared text-glow pulse for text buttons */
 @keyframes text-pulse {
-  0%, 100% { text-shadow: 0 0 10px rgba(255, 90, 200, 0.4); }
-  50% { text-shadow: 0 0 22px rgba(255, 90, 200, 0.9); }
+  0%, 100% { text-shadow: 0 0 10px rgba(var(--glow-rgb), 0.4); }
+  50% { text-shadow: 0 0 22px rgba(var(--glow-rgb), 0.9); }
 }
 
 /* ——— mobile perf: backdrop-blur cost scales with radius; 18px still

@@ -16,9 +16,9 @@ export interface Track {
 
 export const tracks: Track[] = [
   // creation theme: already playing when the card is revealed, keeps going a while
-  { title: "product", artist: "zelvacard", src: "/music/product.mp3", start: 0, end: 34, bg: "/blackhole.mp4" },
+  { title: "product", artist: "zelvacard", src: "/music/product.mp3", start: 0, end: 34, bg: "/bg.mp4" },
   { title: "Suzume", artist: "RADWIMPS feat. Toaka", src: "/music/suzume.mp3", start: 2, end: 32, bg: "/bg.mp4" },
-  { title: "this is what autumn feels like", artist: "JVKE", src: "/music/autumn.mp3", start: 2, end: 32, bg: "/bg-city.mp4" },
-  { title: "lovely", artist: "Billie Eilish, Khalid", src: "/music/lovely.mp3", start: 2, end: 32, bg: "/bg-pink.mp4" },
-  { title: "Love Story (Version Orchestrale)", artist: "M, Indila", src: "/music/love-story.mp3", start: 2, end: 32, bg: "/bg-space.mp4" },
+  { title: "this is what autumn feels like", artist: "JVKE", src: "/music/autumn.mp3", start: 2, end: 32, bg: "/bg.mp4" },
+  { title: "lovely", artist: "Billie Eilish, Khalid", src: "/music/lovely.mp3", start: 2, end: 32, bg: "/bg.mp4" },
+  { title: "Love Story (Version Orchestrale)", artist: "M, Indila", src: "/music/love-story.mp3", start: 2, end: 32, bg: "/bg.mp4" },
 ];

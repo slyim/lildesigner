@@ -1,5 +1,5 @@
 /* Card-creation ritual: dark construction stage, brick-by-brick wall assembly,
-   blackhole flash, beat sync. Imported once per page.
+   sky reveal, beat sync. Imported once per page.
    Driven by src/scripts/creation.ts + beatsync.ts. */
 
 /* ——— dark stage: complete darkness while the real card assembles ——— */
@@ -76,10 +76,10 @@ body.creating .creation--lifted .creation-black { opacity: 0; }
   height: 140px;
   margin: -70px 0 0 -70px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 190, 235, 0.95);
+  border: 3px solid rgba(190, 235, 255, 0.95);
   box-shadow:
-    0 0 50px rgba(255, 90, 200, 0.9),
-    inset 0 0 50px rgba(255, 90, 200, 0.6);
+    0 0 50px rgba(var(--glow-rgb), 0.9),
+    inset 0 0 50px rgba(var(--glow-rgb), 0.6);
   opacity: 0;
   pointer-events: none;
 }
@@ -91,7 +91,7 @@ body.creating .creation--lifted .creation-black { opacity: 0; }
   z-index: 30;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(ellipse at center, transparent 52%, rgba(255, 60, 180, 0.32) 100%);
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(var(--glow-rgb), 0.32) 100%);
 }
 body.beatsync .beat-vignette { opacity: calc(var(--beat-pulse, 0) * 0.35); }
 

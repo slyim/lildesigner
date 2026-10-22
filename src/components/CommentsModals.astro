@@ -88,11 +88,11 @@
   .modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(5, 1, 10, 0.62);
+    background: rgba(3, 12, 24, 0.62);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
-  body.light .modal-backdrop { background: rgba(51, 18, 63, 0.35); }
+  body.light .modal-backdrop { background: rgba(18, 45, 74, 0.35); }
   .modal-card {
     position: relative;
     width: min(720px, calc(100vw - 2rem));
@@ -142,7 +142,7 @@
     transition: color 0.2s ease, background 0.2s ease;
   }
   .modal-x:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
-  body.light .modal-x:hover { background: rgba(51, 18, 63, 0.08); }
+  body.light .modal-x:hover { background: rgba(18, 45, 74, 0.08); }
 
   /* sort pill */
   .modal-sort { position: relative; z-index: 2; margin-top: 0.9rem; padding: 0 0.1rem; }
@@ -172,7 +172,7 @@
     color: var(--text-muted);
     pointer-events: none;
   }
-  .sort-wrap option { background: #1a0827; color: #fff; }
+  .sort-wrap option { background: var(--page-bg); color: var(--text); }
 
   /* full-width browser list */
   .modal-list {
@@ -185,11 +185,11 @@
     min-height: 120px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 122, 217, 0.5) transparent;
+    scrollbar-color: var(--accent) transparent;
     padding: 0.1rem;
   }
   .modal-list::-webkit-scrollbar { width: 5px; }
-  .modal-list::-webkit-scrollbar-thumb { background: rgba(255, 122, 217, 0.5); border-radius: 3px; }
+  .modal-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
 
   /* composer form */
   .comments-form {
@@ -232,7 +232,7 @@
   .comments-name::placeholder, .comments-body::placeholder { color: var(--text-faint); }
   .comments-name:focus, .comments-body:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(255, 90, 200, 0.18);
+    box-shadow: 0 0 0 3px rgba(var(--glow-rgb), 0.18);
   }
   .comments-body {
     min-width: 0;
@@ -251,14 +251,14 @@
     font: inherit;
     font-size: 0.95rem;
     font-weight: 600;
-    color: #fff;
-    background: rgba(255, 90, 200, 0.22);
-    border: 1px solid rgba(255, 122, 217, 0.45);
+    color: var(--text);
+    background: rgba(var(--glow-rgb), 0.22);
+    border: 1px solid var(--accent);
     border-radius: 14px;
     cursor: pointer;
     transition: background 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
   }
-  .comments-post:hover { background: rgba(255, 90, 200, 0.35); }
+  .comments-post:hover { background: rgba(var(--glow-rgb), 0.35); }
   .comments-post:active { transform: scale(0.98); }
   .comments-post:disabled {
     background: rgba(128, 128, 128, 0.15);

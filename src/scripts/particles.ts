@@ -11,7 +11,7 @@ interface Dot {
   phase: number;
   speed: number;
   alpha: number;
-  pink: boolean;
+  blue: boolean;
 }
 
 export function initCardParticles() {
@@ -65,7 +65,7 @@ export function initCardParticles() {
       phase: Math.random() * Math.PI * 2,
       speed: rand(0.4, 1.1),
       alpha: rand(0.12, 0.45),
-      pink: Math.random() < 0.35,
+      blue: Math.random() < 0.35,
     }));
   }
 
@@ -106,8 +106,8 @@ export function initCardParticles() {
       const tw = d.alpha * (0.6 + 0.4 * Math.sin(d.phase * 1.7));
       g.beginPath();
       g.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      g.fillStyle = d.pink
-        ? `rgba(255, 170, 225, ${tw.toFixed(3)})`
+      g.fillStyle = d.blue
+        ? `rgba(170, 225, 255, ${tw.toFixed(3)})`
         : `rgba(255, 255, 255, ${tw.toFixed(3)})`;
       g.fill();
     }

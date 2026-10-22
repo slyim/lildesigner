@@ -95,11 +95,11 @@
     min-height: 140px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 122, 217, 0.5) transparent;
+    scrollbar-color: var(--accent) transparent;
     padding: 0.1rem;
   }
   .comments-list::-webkit-scrollbar { width: 5px; }
-  .comments-list::-webkit-scrollbar-thumb { background: rgba(255, 122, 217, 0.5); border-radius: 3px; }
+  .comments-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
   @media (max-width: 560px) {
     .comments-list { grid-template-columns: 1fr; }
   }
@@ -191,7 +191,7 @@
   }
   .comment-action i { font-size: 1.05rem; }
   .comment-action:hover { color: var(--text); }
-  .comment-action.liked { color: #ff5a8a; }
+  .comment-action.liked { color: var(--accent); }
   .comment-replies { margin-top: 0.5rem; padding-left: 0.7rem; border-left: 2px solid var(--glass-border); }
   .comment-replies[hidden] { display: none; }
   .comment-reply { padding: 0.4rem 0; }

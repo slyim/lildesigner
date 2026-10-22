@@ -22,8 +22,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     <meta name="generator" content={Astro.generator} />
     <title>liliana · zelvacard</title>
     <meta name="description" content="liliana's profile card" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff4fa" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0316" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf7ff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#06182f" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -54,7 +54,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
          the gate pre-buffers what the creation actually shows, instead of
          downloading a clip that's swapped out the moment you click -->
     <div class="bg" aria-hidden="true">
-      <video class="bg-img" id="bgVideo" src="/blackhole.mp4" poster="/banner.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
+      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/banner.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
     </div>
     <div class="beat-flash" aria-hidden="true"></div>
 
@@ -80,7 +80,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       <div class="creation-vignette"></div>
     </div>
 
-    <!-- bang effects: strobe + shockwave over the card as the blackhole ignites -->
+    <!-- bang effects: strobe + shockwave over the card as the sky is revealed -->
     <div class="shockwave" id="shockwave" aria-hidden="true"></div>
     <div class="flash-white" id="flashWhite" aria-hidden="true"></div>
 
@@ -123,7 +123,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
 
     <!-- click-to-enter gate: blurs the whole screen until dismissed -->
     <div class="enter" id="enter" role="button" tabindex="0" aria-label="Click to enter. Warning: contains flashing visuals and motion.">
-      <span class="enter-cta"><span aria-hidden="true">💗</span> click to enter <span aria-hidden="true">💗</span></span>
+      <span class="enter-cta"><span aria-hidden="true">💙</span> click to enter <span aria-hidden="true">💙</span></span>
       <span class="enter-warn">⚠ contains flashing visuals &amp; motion</span>
     </div>
 
@@ -411,9 +411,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         // layer under the blur) — it plays from the first piece of the build
         bannerVideo?.play().catch(() => {});
         // creation ritual: on a dark stage the actual card assembles itself
-        // in 3D while product.mp3 plays, then BANG — the blackhole ignites
+        // in 3D while product.mp3 plays, then BANG — the blue sky appears
         // behind the card. The card never leaves the screen. Product keeps
-        // playing over the blackhole bg for a while afterwards.
+        // playing over the sky for a while afterwards.
         // (The build IS the entrance, so no playEntrance.)
         document.body.classList.add("creating");
         try {
@@ -550,60 +550,62 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       :root {
         color-scheme: dark;
         --radius: 16px;
-        --page-bg: #0d0316;
+        --page-bg: #06182f;
         --text: #fff;
-        --text-body: rgba(255, 255, 255, 0.82);
-        --text-muted: rgba(255, 255, 255, 0.5);
-        --text-faint: rgba(255, 255, 255, 0.45);
-        --accent: #ff7ad9;
-        --accent-soft: #ffb9ec;
-        --handle: rgba(255, 185, 236, 0.85);
-        --glass: rgba(255, 255, 255, 0.06);
-        --glass-border: rgba(255, 255, 255, 0.12);
-        --glass-inset: rgba(255, 208, 236, 0.14);
-        --card-base: rgba(26, 8, 39, 0.36);
-        --card-sheen-a: rgba(255, 208, 236, 0.14);
-        --card-sheen-b: rgba(255, 208, 236, 0.03);
-        --card-border: rgba(255, 255, 255, 0.16);
-        --card-inset-top: rgba(255, 208, 236, 0.25);
-        --card-inset-bottom: rgba(255, 208, 236, 0.06);
-        --card-shadow: rgba(0, 0, 0, 0.75);
+        --text-body: rgba(224, 240, 255, 0.92);
+        --text-muted: rgba(224, 240, 255, 0.8);
+        --text-faint: rgba(224, 240, 255, 0.76);
+        --accent: #78c5ff;
+        --accent-soft: #b9e4ff;
+        --glow-rgb: 73, 168, 255;
+        --handle: rgba(185, 228, 255, 0.95);
+        --glass: rgba(192, 226, 255, 0.06);
+        --glass-border: rgba(192, 226, 255, 0.22);
+        --glass-inset: rgba(192, 226, 255, 0.14);
+        --card-base: rgba(6, 24, 47, 0.84);
+        --card-sheen-a: rgba(192, 226, 255, 0.14);
+        --card-sheen-b: rgba(192, 226, 255, 0.03);
+        --card-border: rgba(192, 226, 255, 0.3);
+        --card-inset-top: rgba(192, 226, 255, 0.25);
+        --card-inset-bottom: rgba(192, 226, 255, 0.06);
+        --card-shadow: rgba(0, 10, 24, 0.58);
         --shadow-drop: 0 30px 80px -20px var(--card-shadow);
-        --shadow-glow: 0 18px 50px -20px rgba(255, 90, 200, 0.35), 0 0 60px -18px rgba(255, 80, 180, 0.45);
-        --ring-gap: rgba(26, 8, 39, 0.9);
-        --status-gap: rgba(26, 8, 39, 0.95);
+        --shadow-glow: 0 18px 50px -20px rgba(var(--glow-rgb), 0.28), 0 0 60px -18px rgba(var(--glow-rgb), 0.3);
+        --ring-gap: rgba(6, 24, 47, 0.9);
+        --status-gap: rgba(6, 24, 47, 0.95);
 
-        --social-hover-bg: rgba(255, 90, 200, 0.2);
+        --social-hover-bg: rgba(var(--glow-rgb), 0.2);
         --social-hover-color: #fff;
-        --pill-bg: rgba(26, 8, 39, 0.55);
+        --pill-bg: rgba(6, 24, 47, 0.86);
         --pill-hover-color: #fff;
       }
       body.light {
         color-scheme: light;
-        --text: #33123f;
-        --text-body: rgba(51, 18, 63, 0.8);
-        --text-muted: rgba(51, 18, 63, 0.55);
-        --text-faint: rgba(51, 18, 63, 0.5);
-        --accent: #d633a8;
-        --accent-soft: #b83692;
-        --handle: rgba(184, 54, 146, 0.9);
-        --glass: rgba(255, 255, 255, 0.55);
-        --glass-border: rgba(184, 54, 146, 0.18);
-        --glass-inset: rgba(255, 226, 244, 0.7);
-        --card-base: rgba(255, 244, 250, 0.5);
-        --card-sheen-a: rgba(255, 226, 244, 0.7);
-        --card-sheen-b: rgba(255, 226, 244, 0.25);
+        --page-bg: #edf7ff;
+        --text: #122d4a;
+        --text-body: rgba(18, 45, 74, 0.9);
+        --text-muted: rgba(18, 45, 74, 0.8);
+        --text-faint: rgba(18, 45, 74, 0.76);
+        --accent: #2168ad;
+        --accent-soft: #2168ad;
+        --handle: rgba(33, 104, 173, 0.96);
+        --glass: rgba(239, 248, 255, 0.65);
+        --glass-border: rgba(33, 104, 173, 0.22);
+        --glass-inset: rgba(226, 243, 255, 0.7);
+        --card-base: rgba(239, 248, 255, 0.9);
+        --card-sheen-a: rgba(226, 243, 255, 0.7);
+        --card-sheen-b: rgba(226, 243, 255, 0.25);
         --card-border: rgba(255, 255, 255, 0.8);
-        --card-inset-top: rgba(255, 226, 244, 0.8);
-        --card-inset-bottom: rgba(184, 54, 146, 0.08);
-        --card-shadow: rgba(150, 60, 130, 0.35);
+        --card-inset-top: rgba(226, 243, 255, 0.8);
+        --card-inset-bottom: rgba(33, 104, 173, 0.08);
+        --card-shadow: rgba(40, 89, 135, 0.25);
         --ring-gap: rgba(255, 255, 255, 0.92);
         --status-gap: rgba(255, 255, 255, 0.95);
 
-        --social-hover-bg: rgba(255, 90, 200, 0.25);
-        --social-hover-color: #a02080;
-        --pill-bg: rgba(255, 255, 255, 0.6);
-        --pill-hover-color: #a02080;
+        --social-hover-bg: rgba(var(--glow-rgb), 0.25);
+        --social-hover-color: #174f87;
+        --pill-bg: rgba(239, 248, 255, 0.9);
+        --pill-hover-color: #174f87;
       }
       html, body {
         margin: 0;
@@ -613,6 +615,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         color: var(--text);
       }
       body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+      ::selection { background: var(--accent); color: var(--page-bg); }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      input, textarea { caret-color: var(--accent); }
 
       .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--page-bg); }
       /* background footage plays raw — zero effects, so the creation flash
@@ -707,7 +712,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         align-content: center;
         gap: 1.1rem;
         cursor: pointer;
-        background: rgba(10, 2, 18, 0.55);
+        background: rgba(4, 15, 29, 0.68);
         backdrop-filter: blur(44px) saturate(1.3);
         -webkit-backdrop-filter: blur(44px) saturate(1.3);
         transition: opacity 0.7s ease, visibility 0.7s;
@@ -718,8 +723,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         font-weight: 400;
         letter-spacing: 0.28em;
         text-transform: uppercase;
-        color: rgba(255, 185, 236, 0.9);
-        text-shadow: 0 0 18px rgba(255, 90, 200, 0.6);
+        color: rgba(185, 228, 255, 0.95);
+        text-shadow: 0 0 18px rgba(var(--glow-rgb), 0.6);
         transition: color 0.3s ease;
         animation: cta-breathe 2.4s ease-in-out infinite;
       }
@@ -729,16 +734,16 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
          invisible at 1px on this background) */
       .enter:focus { outline: none; }
       .enter:focus-visible .enter-cta { color: #fff; }
-      .enter:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 122, 217, 0.65); }
+      .enter:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
       .enter-warn {
         font-size: 0.68rem;
         font-weight: 400;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(224, 240, 255, 0.8);
       }
       @keyframes cta-breathe {
-        0%, 100% { opacity: 0.55; }
+        0%, 100% { opacity: 0.78; }
         50% { opacity: 1; }
       }
 
@@ -795,7 +800,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: linear-gradient(180deg, rgba(255, 208, 236, 0.12), transparent 52%);
+        background: linear-gradient(180deg, rgba(192, 226, 255, 0.12), transparent 52%);
         pointer-events: none;
       }
       .tab {
@@ -820,20 +825,20 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
       }
       .tab i { font-size: 1.05rem; color: var(--accent-soft); transition: color 0.2s ease; }
-      .tab:hover { color: var(--pill-hover-color); border-color: rgba(255, 122, 217, 0.45); }
+      .tab:hover { color: var(--pill-hover-color); border-color: var(--accent); }
       .tab:active { transform: scale(0.95); }
       .tab.is-active {
         color: #fff;
         transform: scale(1.04);
-        border-color: rgba(255, 122, 217, 0.6);
+        border-color: var(--accent);
         background:
           url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
-          rgba(255, 90, 200, 0.22);
+          color-mix(in srgb, var(--pill-bg), var(--accent) 18%);
         box-shadow: var(--shadow-drop), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
       }
       .tab.is-active i { color: #fff; }
-      body.light .tab.is-active { color: #a02080; }
-      body.light .tab.is-active i { color: #d633a8; }
+      body.light .tab.is-active { color: #174f87; }
+      body.light .tab.is-active i { color: var(--accent); }
       .tab.beaming { animation: icon-pulse 2.2s ease-in-out infinite; }
       /* below ~1020px the corner pills would overlap centered tabs — tabs
          drop to their own row under them */
@@ -841,16 +846,15 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         .tabbar { top: 4.9rem; }
       }
       @media (max-width: 480px) {
-        .tabbar { gap: 0.5rem; top: 4.6rem; max-width: calc(100vw - 1rem); }
-        .tab { padding: 0.55rem 0.6rem; font-size: 0.74rem; gap: 0.35rem; }
+        .tabbar {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 0.5rem;
+          top: 4.6rem;
+          width: calc(100vw - 2rem);
+        }
+        .tab { flex-direction: column; justify-content: center; padding: 0.55rem 0.2rem; font-size: 0.7rem; gap: 0.25rem; }
         .tab i { font-size: 0.95rem; }
-      }
-      /* ≤360px phones (same 4-tab row, narrower budget): shave padding/type
-         so the row still fits its max-width instead of clipping at the edges */
-      @media (max-width: 360px) {
-        .tabbar { gap: 0.3rem; }
-        .tab { padding: 0.5rem 0.45rem; font-size: 0.7rem; gap: 0.3rem; }
-        .tab i { font-size: 0.9rem; }
       }
       .float-pill.beaming { border-color: transparent; }
       /* keep the pill's beam glowing while a child control (play/skip/volume) is hovered */
@@ -898,7 +902,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         border-radius: 50%;
         background: #fff;
         border: none;
-        box-shadow: 0 0 8px rgba(255, 90, 200, 0.8);
+        box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.8);
       }
       .vol-slider::-moz-range-thumb {
         width: 12px;
@@ -906,22 +910,22 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         border-radius: 50%;
         background: #fff;
         border: none;
-        box-shadow: 0 0 8px rgba(255, 90, 200, 0.8);
+        box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.8);
       }
       .vol-slider::-moz-range-track { height: 4px; background: transparent; }
       /* outline is none above, so keyboard focus needs its own ring — a glow
          on the thumb plus an accent track, matching the hover language */
       .vol-slider:focus-visible::-webkit-slider-thumb {
-        box-shadow: 0 0 0 3px rgba(255, 90, 200, 0.35), 0 0 12px rgba(255, 90, 200, 1);
+        box-shadow: 0 0 0 3px rgba(var(--glow-rgb), 0.35), 0 0 12px rgba(var(--glow-rgb), 1);
       }
       .vol-slider:focus-visible::-moz-range-thumb {
-        box-shadow: 0 0 0 3px rgba(255, 90, 200, 0.35), 0 0 12px rgba(255, 90, 200, 1);
+        box-shadow: 0 0 0 3px rgba(var(--glow-rgb), 0.35), 0 0 12px rgba(var(--glow-rgb), 1);
       }
       .vol-slider.beaming::-webkit-slider-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
       .vol-slider.beaming::-moz-range-thumb { animation: thumb-pulse 2.2s ease-in-out infinite; }
       @keyframes thumb-pulse {
-        0%, 100% { box-shadow: 0 0 8px rgba(255, 90, 200, 0.8); }
-        50% { box-shadow: 0 0 16px rgba(255, 90, 200, 1); }
+        0%, 100% { box-shadow: 0 0 8px rgba(var(--glow-rgb), 0.8); }
+        50% { box-shadow: 0 0 16px rgba(var(--glow-rgb), 1); }
       }
       .pill-btn {
         background: none;
@@ -940,8 +944,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       .pill-btn.beaming { animation: icon-pulse 2.2s ease-in-out infinite; }
       .pill-btn:active { transform: scale(0.9); }
       @keyframes icon-pulse {
-        0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 90, 200, 0.5)); }
-        50% { filter: drop-shadow(0 0 8px rgba(255, 90, 200, 1)); }
+        0%, 100% { filter: drop-shadow(0 0 3px rgba(var(--glow-rgb), 0.5)); }
+        50% { filter: drop-shadow(0 0 8px rgba(var(--glow-rgb), 1)); }
       }
       .track-name {
         max-width: 130px;

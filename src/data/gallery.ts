@@ -8,5 +8,5 @@ export interface GalleryItem {
 
 export const gallery: GalleryItem[] = [
   { src: "/avatar.jpg", alt: "Liliana's avatar", caption: "me!" },
-  { src: "/gallery-hole.jpg", alt: "Black hole still from the creation backdrop", caption: "event horizon" },
+  { src: "/banner.jpg", alt: "Blue sky with drifting petals and sparkles", caption: "daydream" },
 ];

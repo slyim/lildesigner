@@ -3,7 +3,7 @@ export const profile = {
   name: "violily",
   displayName: "Liliana",
   pronouns: "she/faer",
-  bio: "product designer, ich war ich bin ich werde sein. Aby <3",
+  bio: "product designer, ich war ich bin ich werde sein.",
   avatar: "/avatar.jpg",
   banner: "/banner.mp4",
   bannerPoster: "/banner.jpg",
