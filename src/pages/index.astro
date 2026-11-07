@@ -52,6 +52,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
   <body class="cybernetic">
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
     <CodeBackdrop />
+    <div class="crt-overlay" aria-hidden="true"></div>
 
     <main inert>
       <div class="cards">
@@ -127,6 +128,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       import { initTiltCards } from "../scripts/tilt";
       import { initHoverGlow } from "../scripts/beam";
       import { initCardParticles } from "../scripts/particles";
+      import { initCustomCursor } from "../scripts/cursor";
       import { playEntrance } from "../scripts/entrance";
       import { playNameTyping } from "../scripts/typing";
       import { playCreationSequence } from "../scripts/creation";
@@ -137,12 +139,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       import type { SupabaseClient } from "@supabase/supabase-js";
       import type { ZelvaDB } from "../db/database";
 
-      const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (!motionQuery.matches) {
-        initTiltCards();
-        initHoverGlow();
-        initCardParticles();
-      }
+      // Effects are part of this portfolio's presentation, independent of OS settings.
+      initHoverGlow();
+      initTiltCards();
+      initCardParticles();
+      initCustomCursor();
       initWidgets();
 
       const analyticsConfig = document.getElementById("supabase-config") as HTMLElement;
@@ -225,7 +226,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         });
       }
 
-      // Respect the visitor's motion preference before starting any effects.
+      // The entry action starts the animated presentation and music.
       const enter = document.getElementById("enter")!;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
       const bannerVideo = document.getElementById("bannerVideo") as HTMLVideoElement | null;
@@ -379,7 +380,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         setTimeout(() => enter.remove(), 900);
         // the banner sat on its poster behind the gate (one less moving
         // layer under the blur) — it plays from the first piece of the build
-        if (!motionQuery.matches) bannerVideo?.play().catch(() => {});
+        bannerVideo?.play().catch(() => {});
         // creation ritual: on a dark stage the actual card assembles itself
         // in 3D while product.mp3 plays, then BANG — the blue sky appears
         // behind the card. The card never leaves the screen. Product keeps
@@ -387,20 +388,15 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         // (The build IS the entrance, so no playEntrance.)
         document.body.classList.add("creating");
         try {
-          if (motionQuery.matches) {
-            document.body.classList.remove("creating");
-            document.body.classList.add("entered");
-          } else {
-            await playCreationSequence({ getVolume: () => userVol, src: tracks[0].src, bgSrc: tracks[0].bg, start: tracks[0].start });
-          }
+          await playCreationSequence({ getVolume: () => userVol, src: tracks[0].src, bgSrc: tracks[0].bg, start: tracks[0].start });
         } catch (error) {
           console.warn("Creation sequence failed, entering directly", error);
           document.body.classList.remove("creating", "no-glass");
           document.body.classList.add("entered");
-          if (!motionQuery.matches) playEntrance();
+          playEntrance();
         }
         // keepInitial: the name is already built — never wipe it post-bang
-        if (!motionQuery.matches) playNameTyping(document, true);
+        playNameTyping(document, true);
         // product is already playing from the build — hand it to the playlist
         // instead of restarting it (unless it errored and skipped ahead)
         if (!audio.src) {
@@ -414,7 +410,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           showTrack();
           setPlayingUI(!audio.paused);
         }
-        if (!motionQuery.matches) startBeatSync(audio);
+        startBeatSync(audio);
       });
 
       // still on the creation track? compare URL pathnames — raw `src` strings
@@ -435,7 +431,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         if (document.hidden) {
           bannerVideo?.pause();
         } else if (entered) {
-          if (!motionQuery.matches) bannerVideo?.play().catch(() => {});
+          bannerVideo?.play().catch(() => {});
         }
       });
 

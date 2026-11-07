@@ -13,10 +13,13 @@
     "border": "#626ec5"
   },
   "motion": {
-    "background": "code-drift, 42–77s linear",
+    "background": "code-drift, 24-49s linear, opacity 0.24",
     "hiddenTab": "paused",
-    "reducedMotion": "static background, no creation or continuous effects"
+    "osPreference": "independent of OS reduced-motion preference by explicit user request",
+    "interactions": "hover beam, glare, tilt, cursor trail and ripple, particles, name glow, beat reactivity",
+    "crt": "3px scanlines and 12s linear sweep; pointer-events none"
   },
+  "shapes": { "panelCut": "16px", "controlCut": "7px", "avatarCut": "12px", "corners": "top-left and bottom-right" },
   "responsive": { "bottomNavigationMaxWidth": "600px", "socialGridMaxWidth": "360px" },
   "assetProvenance": {
     "public/avatar-goddess.webp": "User attachment Goddess [Recovered].png; resized to 512x512 and encoded as WebP with ffmpeg. No generated image edits."
