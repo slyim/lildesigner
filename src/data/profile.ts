@@ -2,14 +2,12 @@
 export const profile = {
   name: "violily",
   displayName: "Liliana",
-  pronouns: "she/faer",
-  bio: "product designer, ich war ich bin ich werde sein.",
+  pronouns: "she/her",
+  bio: "creative technologist, ich war ich bin ich werde sein.",
   avatar: "/avatar-goddess.webp",
-  banner: "/banner.mp4",
-  bannerPoster: "/banner.jpg",
   status: "online" as const,
   location: "earth",
-  occupation: "product designer",
+  occupation: "creative technologist",
   // Discord presence box (via free Lanyard API — join https://discord.gg/lanyard
   // with this account first). Empty = box stays hidden.
   discordId: "",

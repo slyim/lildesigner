@@ -1,6 +1,6 @@
 // Card-creation ritual: from complete darkness the ACTUAL card builds itself
 // in 3D while tilted at an angle — piece by piece, each one landing fully
-// before the next begins (banner unfolds -> avatar flips in -> name tilts
+// before the next begins (avatar flips in -> name tilts
 // up -> stats flip in -> socials flip in -> legal fades) while product.mp3
 // plays. Then BANG — the card swings around to face the viewer front and
 // center as the blackhole ignites behind it, with a strobe, shockwave, and
@@ -35,7 +35,6 @@ const PLAY_WAIT_MS = 1500;
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 const ALL_TARGETS = [
-  "#view-profile .banner",
   "#view-profile .avatar-ring",
   "#view-profile .identity > *",
   "#view-profile .meta-item",
@@ -173,12 +172,6 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
   gsap.set(ALL_TARGETS, { opacity: 0 });
 
   const tl = gsap.timeline();
-  tl.fromTo(
-    "#view-profile .banner",
-    { rotationX: -75, y: -20, opacity: 0, transformOrigin: "50% 0%", transformPerspective: 900 },
-    { rotationX: 0, y: 0, opacity: 1, duration: 0.9, ease: "expo.out" },
-    1.0,
-  );
   tl.fromTo(
     "#view-profile .avatar-ring",
     { rotationY: -180, scale: 0.4, opacity: 0, transformPerspective: 800 },

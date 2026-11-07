@@ -37,6 +37,8 @@ Keep Lexend for interface and content. Monospace belongs to background code and 
 
 Keep the centered 560px profile composition. Desktop navigation sits above it; at 600px and below, navigation moves to the bottom with safe-area spacing. Reserve space around fixed controls. Social targets remain at least 44px; narrow phones arrange them into three columns.
 
+The profile starts with the portrait and has no banner. The gallery shows only the current Goddess portrait at its full square aspect ratio. The favicon uses Phosphor's code-bold glyph in cyan on the portfolio blue, with matching SVG and ICO assets.
+
 ## Elevation & Depth
 
 Opaque panels and cyan diagonal frames replace liquid glass. Retain hover beams, pointer-following glow, tilt, particles, name glow, music reactivity, cursor trails, click ripples, and entrance choreography. No backdrop blur or fullscreen white beat flashes. A subtle CRT scanline layer and slow sweep sit above the interface without intercepting input.

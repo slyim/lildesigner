@@ -7,13 +7,6 @@ import { profile } from "../data/profile";
     <div class="card-glare" data-glare></div>
     <span class="beam-border" aria-hidden="true"></span>
 
-    <!-- Banner -->
-    <!-- looping clip, not a GIF: hardware-decoded and much smaller. Paused
-         behind the gate; index.astro starts it on enter. -->
-    <div class="banner layer" data-depth="12">
-      <video id="bannerVideo" src={profile.banner} poster={profile.bannerPoster} muted loop playsinline preload="auto" aria-hidden="true"></video>
-    </div>
-
     <!-- Avatar row -->
     <div class="avatar-row layer" data-depth="34">
       <div class="avatar-ring">
@@ -88,24 +81,7 @@ import { profile } from "../data/profile";
 <style>
   .profile-card {
     width: min(560px, calc(100vw - 2.5rem));
-    padding: 0 0 1.75rem;
-  }
-
-  /* ——— banner ——— */
-  .banner {
-    --z: 12px;
-    position: relative;
-    height: 200px;
-    overflow: hidden;
-    z-index: 1;
-  }
-  /* The supplied sky animation plays without a per-frame CSS filter. */
-  .banner video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transform: scale(1.15);
+    padding: 2rem 0 1.75rem;
   }
 
   /* ——— avatar ——— */
@@ -114,7 +90,7 @@ import { profile } from "../data/profile";
     display: flex;
     justify-content: center;
     padding: 0 1.4rem;
-    margin-top: -62px;
+    margin-top: 0;
     position: relative;
     z-index: 3;
   }

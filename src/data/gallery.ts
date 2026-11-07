@@ -1,5 +1,6 @@
-// Gallery — poster tiles. Two examples below; add yours by dropping files
-// in public/ and appending rows. Portrait-ish art looks best.
+import { profile } from "./profile";
+
+// Keep the gallery in sync with the current profile portrait.
 export interface GalleryItem {
   src: string;
   alt: string;
@@ -7,6 +8,5 @@ export interface GalleryItem {
 }
 
 export const gallery: GalleryItem[] = [
-  { src: "/avatar.jpg", alt: "Liliana's avatar", caption: "me!" },
-  { src: "/banner.jpg", alt: "Blue sky with drifting petals and sparkles", caption: "daydream" },
+  { src: profile.avatar, alt: "Liliana's illustrated Goddess portrait", caption: "me!" },
 ];

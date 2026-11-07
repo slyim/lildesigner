@@ -1,5 +1,5 @@
 ---
-// Gallery tab — tile grid over the same glass card.
+// Gallery tab — current profile artwork in a cybernetic frame.
 import { gallery } from "../data/gallery";
 ---
 
@@ -11,7 +11,7 @@ import { gallery } from "../data/gallery";
     <div class="gallery-grid layer">
       {gallery.map((g) => (
         <figure class="tile">
-          <img src={g.src} alt={g.alt} loading="lazy" />
+          <img src={g.src} alt={g.alt} width="512" height="512" loading="lazy" decoding="async" />
           <figcaption>{g.caption}</figcaption>
         </figure>
       ))}
@@ -32,7 +32,7 @@ import { gallery } from "../data/gallery";
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 0.9rem;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -41,14 +41,15 @@ import { gallery } from "../data/gallery";
   }
   .gallery-grid::-webkit-scrollbar { width: 5px; }
   .gallery-grid::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
-  /* poster style: tall art, title beneath */
+  /* Show the complete square artwork, with its caption beneath. */
   .tile { margin: 0; min-width: 0; cursor: default; }
   .tile img {
     width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: contain;
     display: block;
-    border-radius: 12px;
+    border-radius: 0;
     background: var(--glass);
     border: 1px solid var(--glass-border);
     transition: transform 0.5s ease, border-color 0.3s ease;

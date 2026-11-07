@@ -19,7 +19,8 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=code" />
+    <link rel="icon" sizes="32x32" href="/favicon.ico?v=code" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
     <title>liliana · zelvacard</title>
@@ -229,7 +230,6 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       // The entry action starts the animated presentation and music.
       const enter = document.getElementById("enter")!;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
-      const bannerVideo = document.getElementById("bannerVideo") as HTMLVideoElement | null;
 
       const musicPill = document.getElementById("musicPill")!;
       const musicToggle = document.getElementById("musicToggle")!;
@@ -378,9 +378,6 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         document.querySelector<HTMLButtonElement>(".tab.is-active")?.focus({ preventScroll: true });
         enter.classList.add("enter--hidden");
         setTimeout(() => enter.remove(), 900);
-        // the banner sat on its poster behind the gate (one less moving
-        // layer under the blur) — it plays from the first piece of the build
-        bannerVideo?.play().catch(() => {});
         // creation ritual: on a dark stage the actual card assembles itself
         // in 3D while product.mp3 plays, then BANG — the blue sky appears
         // behind the card. The card never leaves the screen. Product keeps
@@ -424,16 +421,6 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
           return current.includes(tracks[0].src);
         }
       }
-
-      // hidden tabs keep decoding video for nobody — park it.
-      // Music is a separate element, so it plays on uninterrupted.
-      document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-          bannerVideo?.pause();
-        } else if (entered) {
-          bannerVideo?.play().catch(() => {});
-        }
-      });
 
       musicToggle.addEventListener("click", () => {
         if (!audio.src) { playTrack(trackIdx, { force: true }); return; }
