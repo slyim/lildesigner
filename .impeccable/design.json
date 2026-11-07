@@ -1,0 +1,24 @@
+{
+  "name": "Liliana cybernetic portfolio",
+  "mode": "experience",
+  "source": "src/styles/cybernetics.css",
+  "colors": {
+    "page": "#0808ef",
+    "card": "#08083d",
+    "control": "#0c0c51",
+    "accent": "#88edff",
+    "text": "#f4f8ff",
+    "body": "#dbe7ff",
+    "muted": "#b9cbf5",
+    "border": "#626ec5"
+  },
+  "motion": {
+    "background": "code-drift, 42–77s linear",
+    "hiddenTab": "paused",
+    "reducedMotion": "static background, no creation or continuous effects"
+  },
+  "responsive": { "bottomNavigationMaxWidth": "600px", "socialGridMaxWidth": "360px" },
+  "assetProvenance": {
+    "public/avatar-goddess.webp": "User attachment Goddess [Recovered].png; resized to 512x512 and encoded as WebP with ffmpeg. No generated image edits."
+  }
+}

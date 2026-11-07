@@ -9,6 +9,8 @@ import { privacy, terms } from "../data/legal";
 import "../styles/glass.css";
 import "../styles/creation.css";
 import "../styles/worldmap.css";
+import "../styles/cybernetics.css";
+import CodeBackdrop from "../components/CodeBackdrop.astro";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -18,17 +20,17 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
     <title>liliana · zelvacard</title>
     <meta name="description" content="liliana's profile card" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf7ff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#06182f" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0808ef" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0808ef" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lexend:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link
@@ -47,16 +49,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css"
     />
   </head>
-  <body>
-    <script is:inline>try{if(matchMedia("(prefers-color-scheme: light)").matches)document.body.classList.add("light")}catch(e){}</script>
+  <body class="cybernetic">
     <span id="supabase-config" data-url={supabaseUrl} data-key={supabaseKey} hidden></span>
-    <!-- liquid-glass backdrop. Starts on the bang footage (tracks[0].bg) so
-         the gate pre-buffers what the creation actually shows, instead of
-         downloading a clip that's swapped out the moment you click -->
-    <div class="bg" aria-hidden="true">
-      <video class="bg-img" id="bgVideo" src="/bg.mp4" poster="/banner.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
-    </div>
-    <div class="beat-flash" aria-hidden="true"></div>
+    <CodeBackdrop />
 
     <main inert>
       <div class="cards">
@@ -103,7 +98,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         <span class="vol-fill" id="volFill" aria-hidden="true"></span>
         <input class="vol-slider" id="volSlider" type="range" min="0" max="100" value="50" title="Volume" aria-label="Volume" />
       </span>
-      <span class="track-name" id="trackName" title=""><span class="track-name-text" id="trackNameText"></span></span>
+      <span class="track-name" id="trackName" aria-live="polite" title=""><span class="track-name-text" id="trackNameText"></span></span>
     </div>
 
     <nav class="tabbar" id="tabbar" aria-label="Sections" inert>
@@ -122,9 +117,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
     </nav>
 
     <!-- click-to-enter gate: blurs the whole screen until dismissed -->
-    <div class="enter" id="enter" role="button" tabindex="0" aria-label="Click to enter. Warning: contains flashing visuals and motion.">
-      <span class="enter-cta"><span aria-hidden="true">💙</span> click to enter <span aria-hidden="true">💙</span></span>
-      <span class="enter-warn">⚠ contains flashing visuals &amp; motion</span>
+    <div class="enter" id="enter" role="button" tabindex="0" aria-label="Click to enter portfolio. Contains animation and music.">
+      <span class="enter-cta">[ enter portfolio ]</span>
+      <span class="enter-warn">animation &amp; music &middot; sound controls inside</span>
     </div>
 
     <script>
@@ -137,16 +132,17 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       import { playCreationSequence } from "../scripts/creation";
       import { startBeatSync } from "../scripts/beatsync";
       import { initComments } from "../scripts/comments";
-      import { initCustomCursor } from "../scripts/cursor";
       import { initWidgets } from "../scripts/widgets";
       import { loadWorldMap } from "../scripts/worldmap";
       import type { SupabaseClient } from "@supabase/supabase-js";
       import type { ZelvaDB } from "../db/database";
 
-      initTiltCards();
-      initHoverGlow();
-      initCardParticles();
-      initCustomCursor();
+      const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (!motionQuery.matches) {
+        initTiltCards();
+        initHoverGlow();
+        initCardParticles();
+      }
       initWidgets();
 
       const analyticsConfig = document.getElementById("supabase-config") as HTMLElement;
@@ -229,36 +225,11 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         });
       }
 
-      // motion is identical for every visitor, whatever their OS motion
-      // setting — the gate warns about flashing/motion before anything plays
+      // Respect the visitor's motion preference before starting any effects.
       const enter = document.getElementById("enter")!;
       const audio = document.getElementById("bgMusic") as HTMLAudioElement;
-      const bgVideo = document.getElementById("bgVideo") as HTMLVideoElement;
       const bannerVideo = document.getElementById("bannerVideo") as HTMLVideoElement | null;
 
-      // background follows the music: dip out, swap video, fade back in.
-      // Generation token: rapid track skips abort stale swaps instead of
-      // flashing intermediate videos or stacking canplay listeners.
-      let bgToken = 0;
-      function setBg(src: string) {
-        if (bgVideo.getAttribute("src") === src && !bgVideo.classList.contains("bg-fade")) return;
-        const token = ++bgToken;
-        bgVideo.classList.add("bg-fade");
-        setTimeout(() => {
-          if (token !== bgToken) return;
-          bgVideo.setAttribute("src", src);
-          bgVideo.play().catch(() => {});
-          const show = () => {
-            // detach first: stale tokens return early and would otherwise
-            // pile a dead listener onto every rapid track skip
-            bgVideo.removeEventListener("canplay", show);
-            if (token !== bgToken) return;
-            bgVideo.classList.remove("bg-fade");
-          };
-          bgVideo.addEventListener("canplay", show);
-          setTimeout(() => { if (token === bgToken) bgVideo.classList.remove("bg-fade"); }, 3000);
-        }, 500);
-      }
       const musicPill = document.getElementById("musicPill")!;
       const musicToggle = document.getElementById("musicToggle")!;
       const musicIcon = document.getElementById("musicIcon")!;
@@ -365,7 +336,6 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         const t = tracks[trackIdx];
         pendingSeek = t.start;
         audio.src = t.src;
-        setBg(t.bg);
         showTrack();
         audio.play().then(() => { errorSkips = 0; setPlayingUI(true); }).catch(() => setPlayingUI(false));
       }
@@ -409,7 +379,7 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         setTimeout(() => enter.remove(), 900);
         // the banner sat on its poster behind the gate (one less moving
         // layer under the blur) — it plays from the first piece of the build
-        bannerVideo?.play().catch(() => {});
+        if (!motionQuery.matches) bannerVideo?.play().catch(() => {});
         // creation ritual: on a dark stage the actual card assembles itself
         // in 3D while product.mp3 plays, then BANG — the blue sky appears
         // behind the card. The card never leaves the screen. Product keeps
@@ -417,16 +387,20 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         // (The build IS the entrance, so no playEntrance.)
         document.body.classList.add("creating");
         try {
-          await playCreationSequence({ getVolume: () => userVol, src: tracks[0].src, bgSrc: tracks[0].bg, start: tracks[0].start });
+          if (motionQuery.matches) {
+            document.body.classList.remove("creating");
+            document.body.classList.add("entered");
+          } else {
+            await playCreationSequence({ getVolume: () => userVol, src: tracks[0].src, bgSrc: tracks[0].bg, start: tracks[0].start });
+          }
         } catch (error) {
           console.warn("Creation sequence failed, entering directly", error);
           document.body.classList.remove("creating", "no-glass");
           document.body.classList.add("entered");
-          playEntrance();
+          if (!motionQuery.matches) playEntrance();
         }
         // keepInitial: the name is already built — never wipe it post-bang
-        playNameTyping(document, true);
-        bgVideo.play().catch(() => {});
+        if (!motionQuery.matches) playNameTyping(document, true);
         // product is already playing from the build — hand it to the playlist
         // instead of restarting it (unless it errored and skipped ahead)
         if (!audio.src) {
@@ -434,15 +408,13 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         } else if (isCreationAudio()) {
           trackIdx = 0;
           pendingSeek = null; // creation already positioned it; ignore stale seeks
-          setBg(tracks[0].bg);
           showTrack();
           setPlayingUI(!audio.paused);
         } else {
-          setBg(tracks[trackIdx].bg);
           showTrack();
           setPlayingUI(!audio.paused);
         }
-        startBeatSync(audio);
+        if (!motionQuery.matches) startBeatSync(audio);
       });
 
       // still on the creation track? compare URL pathnames — raw `src` strings
@@ -461,11 +433,9 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
       // Music is a separate element, so it plays on uninterrupted.
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-          bgVideo.pause();
           bannerVideo?.pause();
         } else if (entered) {
-          bannerVideo?.play().catch(() => {});
-          if (!document.body.classList.contains("creating")) bgVideo.play().catch(() => {});
+          if (!motionQuery.matches) bannerVideo?.play().catch(() => {});
         }
       });
 
@@ -536,13 +506,10 @@ const supabaseKey = import.meta.env.SUPABASE_KEY;
         el.addEventListener("click", () => showView((el as HTMLElement).dataset.view!));
       });
 
-      // theme follows the OS/browser setting and tracks live changes —
-      // no manual toggle. Also retires the old manual-theme key, if any.
-      const themeQuery = window.matchMedia("(prefers-color-scheme: light)");
-      const applyTheme = () => document.body.classList.toggle("light", themeQuery.matches);
-      applyTheme();
-      themeQuery.addEventListener("change", applyTheme);
-      try { localStorage.removeItem("zelva-theme"); } catch { /* private mode */ }
+      // The requested blue cybernetic palette stays consistent across OS themes.
+      document.addEventListener("visibilitychange", () => {
+        document.body.classList.toggle("effects-paused", document.hidden);
+      });
     </script>
 
     <style is:global>

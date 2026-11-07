@@ -17,8 +17,8 @@ import { profile } from "../data/profile";
     <!-- Avatar row -->
     <div class="avatar-row layer" data-depth="34">
       <div class="avatar-ring">
-        <img class="avatar" src={profile.avatar} alt={`${profile.displayName}'s avatar`} />
-        <span class={`status status--${profile.status}`} title={profile.status}></span>
+        <img class="avatar" src={profile.avatar} width="124" height="124" decoding="async" alt={`${profile.displayName}'s illustrated Goddess portrait`} />
+        <span class={`status status--${profile.status}`} role="img" aria-label={profile.status} title={profile.status}></span>
       </div>
     </div>
 

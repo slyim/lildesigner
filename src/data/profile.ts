@@ -4,7 +4,7 @@ export const profile = {
   displayName: "Liliana",
   pronouns: "she/faer",
   bio: "product designer, ich war ich bin ich werde sein.",
-  avatar: "/avatar.jpg",
+  avatar: "/avatar-goddess.webp",
   banner: "/banner.mp4",
   bannerPoster: "/banner.jpg",
   status: "online" as const,

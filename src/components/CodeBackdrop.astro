@@ -1,0 +1,17 @@
+---
+// Decorative source fragments; repeated for a seamless, low contrast drift.
+const fragments = [
+  `const identity = {\n  name: "Liliana",\n  role: "product designer"\n};\n\nfunction create(idea) {\n  return idea.map(design);\n}\n\n// keep imagining\nawait create(next);`,
+  `:root {\n  color: blue;\n  imagination: infinite;\n}\n\ninterface Design {\n  form: string;\n  feeling: string;\n}\n\n// human by design\nexport default identity;`,
+  `import { curiosity }\n  from "everywhere";\n\nconst future = () => {\n  explore();\n  connect();\n  create();\n};\n\n// a work in progress\nrequestAnimationFrame(future);`,
+];
+---
+
+<div class="bg code-backdrop" aria-hidden="true">
+  {Array.from({ length: 6 }, (_, i) => (
+    <div class="code-stream" style={`--column: ${i}; --duration: ${42 + i * 7}s; --delay: -${i * 13}s;`}>
+      <pre>{`${fragments[i % fragments.length]}\n\n${fragments[(i + 1) % fragments.length]}\n\n`}</pre>
+      <pre>{`${fragments[i % fragments.length]}\n\n${fragments[(i + 1) % fragments.length]}\n\n`}</pre>
+    </div>
+  ))}
+</div>

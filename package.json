@@ -10,7 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --experimental-strip-types --test tests/"
+    "test": "node --experimental-strip-types --test tests/*.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
