@@ -27,7 +27,10 @@ export interface CreationOptions {
   start?: number;
 }
 
-const HOLD_MS = 700;
+// Original choreography: 8.1s assembly + 0.7s hold lands on product.mp3's peak.
+// Keep these music cues fixed when visual pieces (such as the banner) change.
+const BUILD_END_SECONDS = 8.1;
+const REVEAL_SECONDS = 8.8;
 const BANG_HOLD_MS = 1100;
 /** longest the black stage waits for product.mp3 to start before building anyway */
 const PLAY_WAIT_MS = 1500;
@@ -157,9 +160,9 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
   }
   // on a slow network play() only resolves once enough has buffered — cap
   // the wait so the stage never sits black; the music joins when it's ready
-  await Promise.race([
-    audio.play().catch(() => { /* blocked: the build still plays, music starts on user toggle */ }),
-    wait(PLAY_WAIT_MS),
+  const playbackStarted = await Promise.race([
+    audio.play().then(() => true, () => false),
+    wait(PLAY_WAIT_MS).then(() => false),
   ]);
 
   // lift the black: the build emerges from complete darkness as the music starts
@@ -171,7 +174,7 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
   // fully before the next begins (~7s build).
   gsap.set(ALL_TARGETS, { opacity: 0 });
 
-  const tl = gsap.timeline();
+  const tl = gsap.timeline({ paused: true });
   tl.fromTo(
     "#view-profile .avatar-ring",
     { rotationY: -180, scale: 0.4, opacity: 0, transformPerspective: 800 },
@@ -203,11 +206,25 @@ export async function playCreationSequence(opts: CreationOptions): Promise<void>
     ">+0.25",
   );
 
-  try {
-    await tl.then();
-  } catch { /* interrupted */ }
+  // Stretch the remaining pieces across the original assembly window rather
+  // than dropping the banner's 1.9 seconds from the musical buildup.
+  const clockStart = performance.now();
+  await new Promise<void>((resolve) => {
+    const update = () => {
+      // The media clock pauses during buffering, keeping every stage and the
+      // final reveal aligned. If playback failed, still let visitors enter.
+      const elapsed = playbackStarted && !audio.error
+        ? Math.max(0, audio.currentTime - startAt)
+        : (performance.now() - clockStart) / 1000;
+      tl.progress(Math.min(1, elapsed / BUILD_END_SECONDS));
+      if (elapsed < REVEAL_SECONDS) return;
+      gsap.ticker.remove(update);
+      resolve();
+    };
+    gsap.ticker.add(update);
+  });
+  tl.kill();
   gsap.set(ALL_TARGETS, { clearProps: "transform,opacity" });
-  await wait(HOLD_MS);
 
   // product keeps playing under the bang — the caller hands it to the playlist
   await bang(opts.getVolume);

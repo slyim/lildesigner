@@ -43,6 +43,8 @@ The profile starts with the portrait and has no banner. The gallery shows only t
 
 Opaque panels and cyan diagonal frames replace liquid glass. Retain hover beams, pointer-following glow, tilt, particles, name glow, music reactivity, cursor trails, click ripples, and entrance choreography. No backdrop blur or fullscreen white beat flashes. A subtle CRT scanline layer and slow sweep sit above the interface without intercepting input.
 
+The intro follows the music clock: assemble across 8.1 seconds and trigger the reveal at 8.8 seconds into the opening track. Removing a visual element must not shorten these musical cues. Fall back to elapsed time only if audio playback cannot start or fails.
+
 ## Shapes
 
 Cut the top-left and bottom-right corners: 16px on panels, 7px on controls, and 12px on the portrait frame. Draw panel borders with stacked clipped layers so diagonal edges and hover beams remain visible. Keep the avatar status outside the clipping mask. Use inset keyboard focus outlines on clipped controls.
